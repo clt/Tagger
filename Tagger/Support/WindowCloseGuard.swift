@@ -167,7 +167,9 @@ final class WindowCloseCoordinator: NSObject, NSWindowDelegate {
             alert.messageText = "Save changes before quitting Tagger?"
         }
 
-        if let filename = session.selectedFileURL?.lastPathComponent {
+        if session.selectedFileURLs.count > 1 {
+            alert.informativeText = "The ID3 tags for \(session.selectedFileURLs.count) selected MP3 files have unsaved changes."
+        } else if let filename = session.selectedFileURL?.lastPathComponent {
             alert.informativeText = "The ID3 tags for \(filename) have unsaved changes."
         } else {
             alert.informativeText = "The selected MP3 has unsaved ID3 tag changes."

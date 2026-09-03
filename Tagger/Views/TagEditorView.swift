@@ -5,7 +5,9 @@ struct TagEditorView: View {
 
     var body: some View {
         Group {
-            if let fileURL = session.selectedFileURL {
+            if session.selectedFileURLs.count > 1 {
+                BatchTagEditorView(session: session)
+            } else if let fileURL = session.selectedFileURL {
                 if session.isLoadingTag {
                     ProgressView("Reading tags…")
                 } else if session.draft != nil {

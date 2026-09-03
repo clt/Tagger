@@ -40,11 +40,11 @@ struct ContentView: View {
                         ProgressView()
                             .controlSize(.small)
                     } else {
-                        Label("Save", systemImage: "square.and.arrow.down")
+                        Label(session.saveButtonTitle, systemImage: "square.and.arrow.down")
                     }
                 }
                 .disabled(!session.canSave)
-                .help("Save tags")
+                .help(session.saveButtonTitle)
             }
         }
         .alert(item: $session.presentedError) { error in
@@ -68,7 +68,7 @@ struct ContentView: View {
                 session.cancelPendingNavigation()
             }
         } message: {
-            Text("The selected MP3 has unsaved tag changes.")
+            Text(session.unsavedChangesMessage)
         }
         .focusedSceneValue(
             \.taggerCommandActions,

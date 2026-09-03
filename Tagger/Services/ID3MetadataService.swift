@@ -1,7 +1,14 @@
 import AudioMarker
+import CryptoKit
 import Foundation
 
+protocol ID3MetadataServicing: Sendable {
+    func load(from url: URL) async throws -> LoadedID3Tag
+    func save(_ loaded: LoadedID3Tag, draft: ID3TagDraft) async throws -> LoadedID3Tag
+}
+
 struct LoadedID3Tag: Sendable {
+    let url: URL
     let source: AudioFileInfo
     let draft: ID3TagDraft
     let hadID3v2Tag: Bool
@@ -11,10 +18,11 @@ struct LoadedID3Tag: Sendable {
 struct AudioFileSnapshot: Equatable, Sendable {
     let fileSize: Int
     let modificationDate: Date?
+    let tagFingerprint: Data
 }
 
-actor ID3MetadataService {
-    func load(from url: URL) throws -> LoadedID3Tag {
+actor ID3MetadataService: ID3MetadataServicing {
+    func load(from url: URL) async throws -> LoadedID3Tag {
         guard url.pathExtension.caseInsensitiveCompare("mp3") == .orderedSame else {
             throw ID3TagServiceError.notAnMP3
         }
@@ -26,6 +34,7 @@ actor ID3MetadataService {
         case .none:
             let source = AudioFileInfo()
             loaded = LoadedID3Tag(
+                url: url,
                 source: source,
                 draft: makeDraft(from: source.metadata),
                 hadID3v2Tag: false,
@@ -36,6 +45,7 @@ actor ID3MetadataService {
             do {
                 let source = try ID3Reader().read(from: url)
                 loaded = LoadedID3Tag(
+                    url: url,
                     source: source,
                     draft: makeDraft(from: source.metadata),
                     hadID3v2Tag: true,
@@ -53,7 +63,11 @@ actor ID3MetadataService {
         return loaded
     }
 
-    func save(_ loaded: LoadedID3Tag, draft: ID3TagDraft, to url: URL) throws -> LoadedID3Tag {
+    func save(
+        _ loaded: LoadedID3Tag,
+        draft: ID3TagDraft
+    ) async throws -> LoadedID3Tag {
+        let url = loaded.url
         guard try snapshot(of: url) == loaded.snapshot else {
             throw ID3TagServiceError.fileChangedExternally
         }
@@ -90,7 +104,7 @@ actor ID3MetadataService {
             throw ID3TagServiceError.writeFailed(error.localizedDescription)
         }
 
-        return try load(from: url)
+        return try await load(from: url)
     }
 
     private enum TagState: Equatable {
@@ -144,8 +158,53 @@ actor ID3MetadataService {
             }
             return AudioFileSnapshot(
                 fileSize: fileSize,
-                modificationDate: attributes[.modificationDate] as? Date
+                modificationDate: attributes[.modificationDate] as? Date,
+                tagFingerprint: try tagFingerprint(of: url, fileSize: fileSize)
             )
+        } catch let error as ID3TagServiceError {
+            throw error
+        } catch {
+            throw ID3TagServiceError.cannotRead(error.localizedDescription)
+        }
+    }
+
+    private func tagFingerprint(of url: URL, fileSize: Int) throws -> Data {
+        let handle: FileHandle
+        do {
+            handle = try FileHandle(forReadingFrom: url)
+        } catch {
+            throw ID3TagServiceError.cannotRead(error.localizedDescription)
+        }
+        defer { try? handle.close() }
+
+        do {
+            let header = try handle.read(upToCount: 10) ?? Data()
+            var hasher = SHA256()
+            hasher.update(data: header)
+
+            guard header.count == 10,
+                  header.starts(with: [0x49, 0x44, 0x33]) else {
+                return Data(hasher.finalize())
+            }
+
+            let bytes = [UInt8](header)
+            let declaredTagSize = bytes[6...9].reduce(0) { partial, byte in
+                (partial << 7) | Int(byte & 0x7F)
+            }
+            guard declaredTagSize <= fileSize - 10 else {
+                return Data(hasher.finalize())
+            }
+
+            var remaining = declaredTagSize
+            while remaining > 0 {
+                let chunkSize = min(remaining, 1_048_576)
+                let chunk = try handle.read(upToCount: chunkSize) ?? Data()
+                guard !chunk.isEmpty else { break }
+                hasher.update(data: chunk)
+                remaining -= chunk.count
+            }
+
+            return Data(hasher.finalize())
         } catch let error as ID3TagServiceError {
             throw error
         } catch {

@@ -26,7 +26,7 @@ final class ID3MetadataServiceTests: XCTestCase {
         draft.lyrics = "One line\nTwo lines"
         draft.artworkData = tinyPNG
 
-        let saved = try await service.save(loaded, draft: draft, to: fixture.file)
+        let saved = try await service.save(loaded, draft: draft)
 
         XCTAssertTrue(saved.hadID3v2Tag)
         XCTAssertEqual(saved.draft, draft)
@@ -72,8 +72,42 @@ final class ID3MetadataServiceTests: XCTestCase {
         draft.title = "Should Not Be Written"
 
         do {
-            _ = try await service.save(loaded, draft: draft, to: fixture.file)
+            _ = try await service.save(loaded, draft: draft)
             XCTFail("Expected an externally changed file to be rejected")
+        } catch let error as ID3TagServiceError {
+            XCTAssertEqual(error, .fileChangedExternally)
+        }
+
+        XCTAssertEqual(try Data(contentsOf: fixture.file), changedData)
+    }
+
+    func testRefusesSameSizeTagChangeWhenModificationDateIsRestored() async throws {
+        let fixture = try makeTaggedFixture(
+            named: "changed-tag.mp3",
+            version: .v2_4
+        )
+        defer { try? FileManager.default.removeItem(at: fixture.folder) }
+
+        let service = ID3MetadataService()
+        let loaded = try await service.load(from: fixture.file)
+        let originalModificationDate = try XCTUnwrap(loaded.snapshot.modificationDate)
+
+        var changedData = try Data(contentsOf: fixture.file)
+        let originalTitle = Data("Original Title".utf8)
+        let titleRange = try XCTUnwrap(changedData.range(of: originalTitle))
+        changedData[titleRange.lowerBound] = 0x58
+        try changedData.write(to: fixture.file)
+        try FileManager.default.setAttributes(
+            [.modificationDate: originalModificationDate],
+            ofItemAtPath: fixture.file.path
+        )
+
+        var draft = loaded.draft
+        draft.artist = "Should Not Be Written"
+
+        do {
+            _ = try await service.save(loaded, draft: draft)
+            XCTFail("Expected a same-size external tag change to be rejected")
         } catch let error as ID3TagServiceError {
             XCTAssertEqual(error, .fileChangedExternally)
         }
@@ -113,7 +147,7 @@ final class ID3MetadataServiceTests: XCTestCase {
         var draft = loaded.draft
         draft.title = updatedTitle
 
-        let saved = try await service.save(loaded, draft: draft, to: fixture.file)
+        let saved = try await service.save(loaded, draft: draft)
         XCTAssertEqual(saved.draft.title, updatedTitle)
 
         let parsed = try parseTaggedFile(try Data(contentsOf: fixture.file))

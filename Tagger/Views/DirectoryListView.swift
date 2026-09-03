@@ -42,15 +42,11 @@ struct DirectoryListView: View {
         .navigationTitle(session.selectedFolderURL?.lastPathComponent ?? "Files")
     }
 
-    private var selection: Binding<URL?> {
+    private var selection: Binding<Set<URL>> {
         Binding(
-            get: { session.selectedEntryURL },
+            get: { session.selectedEntryURLs },
             set: { newValue in
-                guard let newValue,
-                      let entry = session.entries.first(where: { $0.url == newValue }) else {
-                    return
-                }
-                session.requestSelectEntry(entry)
+                session.requestSelectEntries(newValue)
             }
         )
     }
