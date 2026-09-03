@@ -1,0 +1,69 @@
+name: Tagger
+
+options:
+  minimumXcodeGenVersion: 2.46.0
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+packages:
+  AudioMarker:
+    url: https://github.com/atelier-socle/swift-audio-marker.git
+    exactVersion: 0.1.1
+
+settings:
+  base:
+    DEVELOPMENT_LANGUAGE: en
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+
+targets:
+  Tagger:
+    type: application
+    platform: macOS
+    sources:
+      - path: Tagger
+    dependencies:
+      - package: AudioMarker
+    settings:
+      base:
+        CODE_SIGN_ENTITLEMENTS: Tagger/Support/Tagger.entitlements
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        COMBINE_HIDPI_IMAGES: true
+        CURRENT_PROJECT_VERSION: 1
+        ENABLE_HARDENED_RUNTIME: true
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_CFBundleDisplayName: Tagger
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
+        MARKETING_VERSION: 0.1.0
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.Tagger
+        PRODUCT_NAME: Tagger
+
+  TaggerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: TaggerTests
+    dependencies:
+      - target: Tagger
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.TaggerTests
+
+schemes:
+  Tagger:
+    build:
+      targets:
+        Tagger: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - name: TaggerTests
+          parallelizable: false

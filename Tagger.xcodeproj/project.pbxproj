@@ -1,0 +1,588 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		084C5DED5CF48838E143F072 /* ID3TagDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */; };
+		1C0BFD415EA40A2A7CF1F13E /* TaggerCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */; };
+		1D124E3BDE153FB314AF91FC /* PresentedError.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9067D696D65D34C566BCED /* PresentedError.swift */; };
+		1E60CAE8512B1EE14ED21A0B /* DirectoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */; };
+		2008E8F474A058A124D9184E /* ID3MetadataServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */; };
+		223FC3FF413F97364FCA3B65 /* TagEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21627B698343C555010AC37 /* TagEditorView.swift */; };
+		28B662ABAD15D180D2DFB1D4 /* FolderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AB392A9ED99171C048A5CE /* FolderPicker.swift */; };
+		2C087BDB24F2CF6CF7729F9A /* FolderTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4330C8817C3A820A2B7FF6BE /* FolderTreeView.swift */; };
+		2DB3587714445627FD4FD3D4 /* FileSystemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F480128043CF43CA40984F /* FileSystemService.swift */; };
+		2F0CDD6662BDDC5013F5E1FA /* ID3TagDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */; };
+		5572BB273DC61F0CBE5E5A78 /* LibrarySession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E432006378DB65229FF3C8FC /* LibrarySession.swift */; };
+		6A164EC4B4647251F04AAB20 /* TaggerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9851B56C64EE665723A11986 /* TaggerApp.swift */; };
+		91205BB46FED9F966388851C /* WindowCloseGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 518AFACEEB8F8BDA6A1FF6DB /* WindowCloseGuard.swift */; };
+		97365BD6381152DCC8FA797A /* ArtworkEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8531CE2737527A9AB21D4B7E /* ArtworkEditorView.swift */; };
+		ABE324AEDC03F5B011181224 /* FolderAccessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4983CB4857838813832F9A /* FolderAccessService.swift */; };
+		AEFBB4E2DF1905263921E921 /* AudioMarker-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */; };
+		AF1F24AFBFC934EE0D81E512 /* DirectoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */; };
+		D402F2AFD4E6E8E1E4D73A85 /* ID3MetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */; };
+		E31879185A9AE9529AB37A9A /* AudioMarker-NOTICE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */; };
+		F46E0186908F2396826D1FDC /* AudioMarker in Frameworks */ = {isa = PBXBuildFile; productRef = A7933891FEDAB0A9CA08B345 /* AudioMarker */; };
+		FA33F4FA93C48ADB3C6336A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B372790716A9F321A4B9E6B /* ContentView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B22D9D1FA0906571FA28ED53 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DA0DEF12E794ADFE9003CA96 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D55539559B1E6BC61939A702;
+			remoteInfo = Tagger;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3MetadataServiceTests.swift; sourceTree = "<group>"; };
+		28CB13A5EE67DDC4A95BD451 /* TaggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AudioMarker-LICENSE.txt"; sourceTree = "<group>"; };
+		4330C8817C3A820A2B7FF6BE /* FolderTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderTreeView.swift; sourceTree = "<group>"; };
+		47881D1CBD03F9FE8C223B80 /* Tagger.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tagger.entitlements; sourceTree = "<group>"; };
+		518AFACEEB8F8BDA6A1FF6DB /* WindowCloseGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCloseGuard.swift; sourceTree = "<group>"; };
+		6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEntry.swift; sourceTree = "<group>"; };
+		6F4983CB4857838813832F9A /* FolderAccessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderAccessService.swift; sourceTree = "<group>"; };
+		72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AudioMarker-NOTICE.txt"; sourceTree = "<group>"; };
+		8531CE2737527A9AB21D4B7E /* ArtworkEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkEditorView.swift; sourceTree = "<group>"; };
+		8B372790716A9F321A4B9E6B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		93F480128043CF43CA40984F /* FileSystemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemService.swift; sourceTree = "<group>"; };
+		9851B56C64EE665723A11986 /* TaggerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerApp.swift; sourceTree = "<group>"; };
+		A21627B698343C555010AC37 /* TagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditorView.swift; sourceTree = "<group>"; };
+		B5AB392A9ED99171C048A5CE /* FolderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPicker.swift; sourceTree = "<group>"; };
+		B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryListView.swift; sourceTree = "<group>"; };
+		C6805887F8EC2C0075F8441E /* Tagger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tagger.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3TagDraftTests.swift; sourceTree = "<group>"; };
+		D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3TagDraft.swift; sourceTree = "<group>"; };
+		D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3MetadataService.swift; sourceTree = "<group>"; };
+		E432006378DB65229FF3C8FC /* LibrarySession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySession.swift; sourceTree = "<group>"; };
+		FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerCommands.swift; sourceTree = "<group>"; };
+		FD9067D696D65D34C566BCED /* PresentedError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentedError.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		EC168DAC1184025CAEE69811 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F46E0186908F2396826D1FDC /* AudioMarker in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1DA0C714080E5DA625C56059 /* Tagger */ = {
+			isa = PBXGroup;
+			children = (
+				92DE3BD3EC174C1D80973C50 /* App */,
+				6F3D44EE24E92777A3F14A3F /* Models */,
+				AA9A711090E0DB0F53522143 /* Resources */,
+				80726DCD02CA309866624E2B /* Services */,
+				2E1CAFFA37B2C6C90A7DBD6F /* Stores */,
+				8FB3D9301CC3A40DF995099F /* Support */,
+				AF3AB804BCD01B4300546D4C /* Views */,
+			);
+			path = Tagger;
+			sourceTree = "<group>";
+		};
+		2E1CAFFA37B2C6C90A7DBD6F /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				E432006378DB65229FF3C8FC /* LibrarySession.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
+		6F3D44EE24E92777A3F14A3F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */,
+				D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */,
+				FD9067D696D65D34C566BCED /* PresentedError.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		80726DCD02CA309866624E2B /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				93F480128043CF43CA40984F /* FileSystemService.swift */,
+				6F4983CB4857838813832F9A /* FolderAccessService.swift */,
+				B5AB392A9ED99171C048A5CE /* FolderPicker.swift */,
+				D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		8FB3D9301CC3A40DF995099F /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				47881D1CBD03F9FE8C223B80 /* Tagger.entitlements */,
+				FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */,
+				518AFACEEB8F8BDA6A1FF6DB /* WindowCloseGuard.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		92DE3BD3EC174C1D80973C50 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				9851B56C64EE665723A11986 /* TaggerApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AA9A711090E0DB0F53522143 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */,
+				72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		AF3AB804BCD01B4300546D4C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8531CE2737527A9AB21D4B7E /* ArtworkEditorView.swift */,
+				8B372790716A9F321A4B9E6B /* ContentView.swift */,
+				B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */,
+				4330C8817C3A820A2B7FF6BE /* FolderTreeView.swift */,
+				A21627B698343C555010AC37 /* TagEditorView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C0326B7B35A18BDE859B186D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C6805887F8EC2C0075F8441E /* Tagger.app */,
+				28CB13A5EE67DDC4A95BD451 /* TaggerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E975FD2488A74C0DCA05CD55 = {
+			isa = PBXGroup;
+			children = (
+				1DA0C714080E5DA625C56059 /* Tagger */,
+				F71B4C9DBC89E3D6592D046B /* TaggerTests */,
+				C0326B7B35A18BDE859B186D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F71B4C9DBC89E3D6592D046B /* TaggerTests */ = {
+			isa = PBXGroup;
+			children = (
+				17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */,
+				CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */,
+			);
+			path = TaggerTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AC10140C17874BBAAC1DFBD7 /* TaggerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0AAE61060C7829DCDCB30CB /* Build configuration list for PBXNativeTarget "TaggerTests" */;
+			buildPhases = (
+				5A733D271F068190C70EB701 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				17BCB722ABE5431B0CECCA9E /* PBXTargetDependency */,
+			);
+			name = TaggerTests;
+			packageProductDependencies = (
+			);
+			productName = TaggerTests;
+			productReference = 28CB13A5EE67DDC4A95BD451 /* TaggerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D55539559B1E6BC61939A702 /* Tagger */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EAA6C3E559E508416CFDFDAC /* Build configuration list for PBXNativeTarget "Tagger" */;
+			buildPhases = (
+				8D0647286B43D50A2144CE67 /* Sources */,
+				359E0A8D94855FA37E0ADF03 /* Resources */,
+				EC168DAC1184025CAEE69811 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Tagger;
+			packageProductDependencies = (
+				A7933891FEDAB0A9CA08B345 /* AudioMarker */,
+			);
+			productName = Tagger;
+			productReference = C6805887F8EC2C0075F8441E /* Tagger.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DA0DEF12E794ADFE9003CA96 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					AC10140C17874BBAAC1DFBD7 = {
+						ProvisioningStyle = Manual;
+					};
+					D55539559B1E6BC61939A702 = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = A68807CBD5992C445AC5F4BF /* Build configuration list for PBXProject "Tagger" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E975FD2488A74C0DCA05CD55;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				850542307E5AE0688582AC3C /* XCRemoteSwiftPackageReference "swift-audio-marker" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = C0326B7B35A18BDE859B186D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D55539559B1E6BC61939A702 /* Tagger */,
+				AC10140C17874BBAAC1DFBD7 /* TaggerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		359E0A8D94855FA37E0ADF03 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AEFBB4E2DF1905263921E921 /* AudioMarker-LICENSE.txt in Resources */,
+				E31879185A9AE9529AB37A9A /* AudioMarker-NOTICE.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5A733D271F068190C70EB701 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2008E8F474A058A124D9184E /* ID3MetadataServiceTests.swift in Sources */,
+				084C5DED5CF48838E143F072 /* ID3TagDraftTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8D0647286B43D50A2144CE67 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				97365BD6381152DCC8FA797A /* ArtworkEditorView.swift in Sources */,
+				FA33F4FA93C48ADB3C6336A5 /* ContentView.swift in Sources */,
+				1E60CAE8512B1EE14ED21A0B /* DirectoryEntry.swift in Sources */,
+				AF1F24AFBFC934EE0D81E512 /* DirectoryListView.swift in Sources */,
+				2DB3587714445627FD4FD3D4 /* FileSystemService.swift in Sources */,
+				ABE324AEDC03F5B011181224 /* FolderAccessService.swift in Sources */,
+				28B662ABAD15D180D2DFB1D4 /* FolderPicker.swift in Sources */,
+				2C087BDB24F2CF6CF7729F9A /* FolderTreeView.swift in Sources */,
+				D402F2AFD4E6E8E1E4D73A85 /* ID3MetadataService.swift in Sources */,
+				2F0CDD6662BDDC5013F5E1FA /* ID3TagDraft.swift in Sources */,
+				5572BB273DC61F0CBE5E5A78 /* LibrarySession.swift in Sources */,
+				1D124E3BDE153FB314AF91FC /* PresentedError.swift in Sources */,
+				223FC3FF413F97364FCA3B65 /* TagEditorView.swift in Sources */,
+				6A164EC4B4647251F04AAB20 /* TaggerApp.swift in Sources */,
+				1C0BFD415EA40A2A7CF1F13E /* TaggerCommands.swift in Sources */,
+				91205BB46FED9F966388851C /* WindowCloseGuard.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		17BCB722ABE5431B0CECCA9E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D55539559B1E6BC61939A702 /* Tagger */;
+			targetProxy = B22D9D1FA0906571FA28ED53 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1833E24A07634D1B9FAA4D94 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.TaggerTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tagger.app/Contents/MacOS/Tagger";
+			};
+			name = Debug;
+		};
+		77D80CBEA5D3BDC26C1AA461 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.TaggerTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tagger.app/Contents/MacOS/Tagger";
+			};
+			name = Release;
+		};
+		85B1A68F484C527B98506989 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Tagger/Support/Tagger.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Tagger;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.Tagger;
+				PRODUCT_NAME = Tagger;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		8BCC268FE55670FD6FF78489 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_LANGUAGE = en;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		9057B8F136DA012855EFEE29 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Tagger/Support/Tagger.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Tagger;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.Tagger;
+				PRODUCT_NAME = Tagger;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		B16968BD059454E9B01ABCAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_LANGUAGE = en;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A68807CBD5992C445AC5F4BF /* Build configuration list for PBXProject "Tagger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8BCC268FE55670FD6FF78489 /* Debug */,
+				B16968BD059454E9B01ABCAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D0AAE61060C7829DCDCB30CB /* Build configuration list for PBXNativeTarget "TaggerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1833E24A07634D1B9FAA4D94 /* Debug */,
+				77D80CBEA5D3BDC26C1AA461 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EAA6C3E559E508416CFDFDAC /* Build configuration list for PBXNativeTarget "Tagger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85B1A68F484C527B98506989 /* Debug */,
+				9057B8F136DA012855EFEE29 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		850542307E5AE0688582AC3C /* XCRemoteSwiftPackageReference "swift-audio-marker" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/atelier-socle/swift-audio-marker.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.1.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A7933891FEDAB0A9CA08B345 /* AudioMarker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 850542307E5AE0688582AC3C /* XCRemoteSwiftPackageReference "swift-audio-marker" */;
+			productName = AudioMarker;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = DA0DEF12E794ADFE9003CA96 /* Project object */;
+}
