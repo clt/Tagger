@@ -17,6 +17,7 @@ final class LibrarySession {
     var loadedTag: LoadedID3Tag?
     var draft: ID3TagDraft?
     var originalDraft: ID3TagDraft?
+    var filenameDraft: FilenameDraft?
     var loadedTagsByURL: [URL: LoadedID3Tag] = [:]
     var batchDraft: BatchID3TagDraft?
 
@@ -31,6 +32,7 @@ final class LibrarySession {
     var presentedError: PresentedError?
 
     @ObservationIgnored private let fileSystem: FileSystemService
+    @ObservationIgnored private let fileRenamer: any FileRenaming
     @ObservationIgnored private let metadataService: any ID3MetadataServicing
     @ObservationIgnored private let folderAccess: FolderAccessService
     @ObservationIgnored private let folderPicker: FolderPicker
@@ -44,17 +46,27 @@ final class LibrarySession {
 
     init(
         fileSystem: FileSystemService = FileSystemService(),
+        fileRenamer: (any FileRenaming)? = nil,
         metadataService: any ID3MetadataServicing = ID3MetadataService(),
         folderAccess: FolderAccessService = FolderAccessService(),
         folderPicker: FolderPicker = FolderPicker()
     ) {
         self.fileSystem = fileSystem
+        self.fileRenamer = fileRenamer ?? fileSystem
         self.metadataService = metadataService
         self.folderAccess = folderAccess
         self.folderPicker = folderPicker
     }
 
     var isDirty: Bool {
+        hasUnsavedTagChanges || hasUnsavedFilenameChange
+    }
+
+    var hasUnsavedFilenameChange: Bool {
+        selectedFileURLs.count == 1 && filenameDraft?.isDirty == true
+    }
+
+    var hasUnsavedTagChanges: Bool {
         if selectedFileURLs.count > 1 {
             return batchDraft?.isDirty == true
         }
@@ -67,7 +79,7 @@ final class LibrarySession {
         if selectedFileURLs.count > 1 {
             return batchDraft?.validationMessage
         }
-        return draft?.validationMessage
+        return filenameDraft?.validationMessage ?? draft?.validationMessage
     }
 
     var canSave: Bool {
@@ -85,6 +97,13 @@ final class LibrarySession {
     var unsavedChangesMessage: String {
         if selectedFileURLs.count > 1 {
             return "The selected \(selectedFileURLs.count) MP3 files have unsaved tag changes."
+        }
+
+        if hasUnsavedFilenameChange, hasUnsavedTagChanges {
+            return "The selected MP3 has unsaved file name and tag changes."
+        }
+        if hasUnsavedFilenameChange {
+            return "The selected MP3 has an unsaved file name change."
         }
         return "The selected MP3 has unsaved tag changes."
     }
@@ -210,12 +229,17 @@ final class LibrarySession {
     private func saveSingle() async -> Bool {
         guard let loadedTag,
               let draft,
-              let selectedFileURL else { return false }
+              let selectedFileURL,
+              let filenameDraft else { return false }
 
         let draftBeingSaved = draft
+        let filenameBeingSaved = filenameDraft
+        let hasTagChanges = draft != originalDraft
+        let hasFilenameChanges = filenameDraft.isDirty
+        guard hasTagChanges || hasFilenameChanges else { return false }
 
         if let validationMessage {
-            presentedError = PresentedError(title: "Check Tag Values", message: validationMessage)
+            presentedError = PresentedError(title: "Check Changes", message: validationMessage)
             return false
         }
 
@@ -223,30 +247,95 @@ final class LibrarySession {
         statusMessage = nil
         defer { isSaving = false }
 
-        do {
-            let reloaded = try await metadataService.save(
-                loadedTag,
-                draft: draft
-            )
-
-            guard self.selectedFileURL == selectedFileURL else { return true }
-            let currentDraft = self.draft
-            self.loadedTag = reloaded
-            originalDraft = reloaded.draft
-
-            if currentDraft == draftBeingSaved {
-                self.draft = reloaded.draft
-                statusMessage = "Saved \(selectedFileURL.lastPathComponent)"
-            } else {
-                // Keep edits made while disk I/O was in progress. They remain
-                // dirty relative to the version that was just saved.
-                statusMessage = nil
+        let renameDestination: URL?
+        if hasFilenameChanges {
+            do {
+                renameDestination = try await fileRenamer.validateRename(
+                    from: selectedFileURL,
+                    toFileName: filenameBeingSaved.proposedFilename
+                )
+            } catch {
+                present(error, title: "Couldn’t Rename File")
+                return false
             }
-            return true
-        } catch {
-            present(error, title: "Couldn’t Save Tags")
-            return false
+        } else {
+            renameDestination = nil
         }
+
+        var persistedTag = loadedTag
+        if hasTagChanges {
+            do {
+                persistedTag = try await metadataService.save(
+                    loadedTag,
+                    draft: draftBeingSaved
+                )
+            } catch {
+                present(error, title: "Couldn’t Save Tags")
+                return false
+            }
+        } else if hasFilenameChanges {
+            do {
+                try await metadataService.validateUnchanged(loadedTag)
+            } catch {
+                present(error, title: "Couldn’t Rename File")
+                return false
+            }
+        }
+
+        if let renameDestination {
+            do {
+                try await fileRenamer.rename(
+                    from: selectedFileURL,
+                    to: renameDestination
+                )
+            } catch {
+                guard self.selectedFileURL == selectedFileURL else { return false }
+                if hasTagChanges {
+                    applyPersistedTag(persistedTag, draftBeingSaved: draftBeingSaved)
+                    presentedError = PresentedError(
+                        title: "Tags Saved, File Not Renamed",
+                        message: "The ID3 tags were saved, but the file name wasn’t changed. \(error.localizedDescription)"
+                    )
+                } else {
+                    present(error, title: "Couldn’t Rename File")
+                }
+                return false
+            }
+        }
+
+        guard self.selectedFileURL == selectedFileURL else { return true }
+        let draftStayedUnchanged = self.draft == draftBeingSaved
+        let filenameStayedUnchanged = self.filenameDraft == filenameBeingSaved
+
+        if hasTagChanges {
+            applyPersistedTag(persistedTag, draftBeingSaved: draftBeingSaved)
+        }
+
+        let finalURL: URL
+        if let renameDestination {
+            finalURL = renameDestination
+            applySuccessfulRename(
+                from: selectedFileURL,
+                to: renameDestination,
+                loadedTag: persistedTag,
+                filenameBeingSaved: filenameBeingSaved
+            )
+        } else {
+            finalURL = selectedFileURL
+        }
+
+        if draftStayedUnchanged, filenameStayedUnchanged {
+            if hasFilenameChanges, !hasTagChanges {
+                statusMessage = "Renamed to \(finalURL.lastPathComponent)"
+            } else {
+                statusMessage = "Saved \(finalURL.lastPathComponent)"
+            }
+        } else {
+            // Preserve edits made while disk I/O was in progress. They remain
+            // dirty relative to the version that was just persisted.
+            statusMessage = nil
+        }
+        return true
     }
 
     private func saveBatch() async -> Bool {
@@ -343,6 +432,7 @@ final class LibrarySession {
             batchDraft = makeBatchDraft(from: loadedTagsByURL, urls: selectedFileURLs)
         } else {
             draft = originalDraft
+            filenameDraft?.revert()
         }
         statusMessage = nil
     }
@@ -384,6 +474,58 @@ final class LibrarySession {
 
     func present(_ error: Error, title: String) {
         presentedError = PresentedError(title: title, message: error.localizedDescription)
+    }
+
+    private func applyPersistedTag(
+        _ persistedTag: LoadedID3Tag,
+        draftBeingSaved: ID3TagDraft
+    ) {
+        let currentDraft = draft
+        loadedTag = persistedTag
+        originalDraft = persistedTag.draft
+        if loadedTagsByURL[persistedTag.url] != nil {
+            loadedTagsByURL[persistedTag.url] = persistedTag
+        }
+        if currentDraft == draftBeingSaved {
+            draft = persistedTag.draft
+        }
+    }
+
+    private func applySuccessfulRename(
+        from sourceURL: URL,
+        to destinationURL: URL,
+        loadedTag persistedTag: LoadedID3Tag,
+        filenameBeingSaved: FilenameDraft
+    ) {
+        let currentFilenameDraft = filenameDraft
+        let relocatedTag = persistedTag.relocated(to: destinationURL)
+
+        if let index = entries.firstIndex(where: { $0.url == sourceURL }) {
+            let sourceEntry = entries[index]
+            entries[index] = DirectoryEntry(
+                url: destinationURL,
+                name: destinationURL.lastPathComponent,
+                kind: sourceEntry.kind,
+                fileSize: persistedTag.snapshot.fileSize
+            )
+            entries.sort(by: DirectoryEntry.areInDisplayOrder)
+        }
+
+        selectedEntryURLs.remove(sourceURL)
+        selectedEntryURLs.insert(destinationURL)
+        selectedFileURLs = [destinationURL]
+        loadedTag = relocatedTag
+
+        if loadedTagsByURL.removeValue(forKey: sourceURL) != nil {
+            loadedTagsByURL[destinationURL] = relocatedTag
+        }
+
+        var rebasedFilename = FilenameDraft(url: destinationURL)
+        if currentFilenameDraft != filenameBeingSaved,
+           let currentFilenameDraft {
+            rebasedFilename.stem = currentFilenameDraft.stem
+        }
+        filenameDraft = rebasedFilename
     }
 
     private func makeBatchDraft(
@@ -560,6 +702,7 @@ final class LibrarySession {
                     loadedTag = loaded
                     draft = loaded.draft
                     originalDraft = loaded.draft
+                    filenameDraft = FilenameDraft(url: urls[0])
                 } else {
                     batchDraft = makeBatchDraft(from: loadedByURL, urls: urls)
                 }
@@ -592,6 +735,7 @@ final class LibrarySession {
         loadedTag = nil
         draft = nil
         originalDraft = nil
+        filenameDraft = nil
         loadedTagsByURL = [:]
         batchDraft = nil
     }

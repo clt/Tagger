@@ -6,6 +6,7 @@ Tagger is a small native macOS app for browsing folders of MP3 files and editing
 
 - Three-column folder tree, file list, and tag editor
 - Single-file editing plus Finder-style multi-selection for batch editing
+- Single-file filename editing with the MP3 extension preserved
 - Mixed-value protection: batch saves change only fields explicitly marked Apply
 - ID3v2.3 and ID3v2.4 reading and writing
 - Title, artist, album, album artist, track, disc, year, genre, composer, comment, lyrics, and artwork
@@ -50,6 +51,6 @@ and distribution signing settings in `project.yml` before sharing the app.
 
 ## Initial-version limitations
 
-Batch editing works on MP3 files in the currently displayed folder; use Command-click or Shift-click to select them. Batch saves are sequential, and a failed file does not roll back files already saved. The editor exposes one primary artwork image, one comment, plain lyrics, integer track/disc numbers without totals, and a four-digit year. Saving may collapse multiple artwork, comment, or lyrics variants into the displayed primary value, so test with copies before using irreplaceable files.
+Batch editing works on MP3 files in the currently displayed folder; use Command-click or Shift-click to select them. Batch saves are sequential, and a failed file does not roll back files already saved. Filenames are edited only for a single selected file and remain unchanged during batch editing. The editor exposes one primary artwork image, one comment, plain lyrics, integer track/disc numbers without totals, and a four-digit year. Saving may collapse multiple artwork, comment, or lyrics variants into the displayed primary value, so test with copies before using irreplaceable files.
 
 Tag support is provided by the Apache-2.0-licensed AudioMarker 0.1.1 package, pinned exactly for repeatable builds.

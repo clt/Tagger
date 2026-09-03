@@ -4,6 +4,7 @@ import Foundation
 
 protocol ID3MetadataServicing: Sendable {
     func load(from url: URL) async throws -> LoadedID3Tag
+    func validateUnchanged(_ loaded: LoadedID3Tag) async throws
     func save(_ loaded: LoadedID3Tag, draft: ID3TagDraft) async throws -> LoadedID3Tag
 }
 
@@ -13,6 +14,16 @@ struct LoadedID3Tag: Sendable {
     let draft: ID3TagDraft
     let hadID3v2Tag: Bool
     let snapshot: AudioFileSnapshot
+
+    func relocated(to newURL: URL) -> LoadedID3Tag {
+        LoadedID3Tag(
+            url: newURL,
+            source: source,
+            draft: draft,
+            hadID3v2Tag: hadID3v2Tag,
+            snapshot: snapshot
+        )
+    }
 }
 
 struct AudioFileSnapshot: Equatable, Sendable {
@@ -63,14 +74,18 @@ actor ID3MetadataService: ID3MetadataServicing {
         return loaded
     }
 
+    func validateUnchanged(_ loaded: LoadedID3Tag) async throws {
+        guard try snapshot(of: loaded.url) == loaded.snapshot else {
+            throw ID3TagServiceError.fileChangedExternally
+        }
+    }
+
     func save(
         _ loaded: LoadedID3Tag,
         draft: ID3TagDraft
     ) async throws -> LoadedID3Tag {
         let url = loaded.url
-        guard try snapshot(of: url) == loaded.snapshot else {
-            throw ID3TagServiceError.fileChangedExternally
-        }
+        try await validateUnchanged(loaded)
 
         let currentState = try tagState(at: url)
 

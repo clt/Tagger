@@ -203,6 +203,12 @@ private actor FakeID3MetadataService: ID3MetadataServicing {
         return tag
     }
 
+    func validateUnchanged(_ loaded: LoadedID3Tag) async throws {
+        guard tags[loaded.url] != nil else {
+            throw FakeMetadataError.missingTag(loaded.url.lastPathComponent)
+        }
+    }
+
     func save(
         _ loaded: LoadedID3Tag,
         draft: ID3TagDraft

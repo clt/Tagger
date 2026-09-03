@@ -18,12 +18,15 @@
 		2C087BDB24F2CF6CF7729F9A /* FolderTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4330C8817C3A820A2B7FF6BE /* FolderTreeView.swift */; };
 		2DB3587714445627FD4FD3D4 /* FileSystemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F480128043CF43CA40984F /* FileSystemService.swift */; };
 		2F0CDD6662BDDC5013F5E1FA /* ID3TagDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */; };
+		301738DCDD466981EE462B6D /* LibrarySessionFilenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */; };
 		4A1AC22ABF16DA33429D17E3 /* BatchTagEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D844078576040C9470DA02E /* BatchTagEditorView.swift */; };
 		5572BB273DC61F0CBE5E5A78 /* LibrarySession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E432006378DB65229FF3C8FC /* LibrarySession.swift */; };
 		6A164EC4B4647251F04AAB20 /* TaggerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9851B56C64EE665723A11986 /* TaggerApp.swift */; };
 		91205BB46FED9F966388851C /* WindowCloseGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 518AFACEEB8F8BDA6A1FF6DB /* WindowCloseGuard.swift */; };
+		9445B29F5F68C20B2F48FC87 /* FilenameDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75135C387FEE0D4E67F5AB84 /* FilenameDraft.swift */; };
 		97365BD6381152DCC8FA797A /* ArtworkEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8531CE2737527A9AB21D4B7E /* ArtworkEditorView.swift */; };
 		ABE324AEDC03F5B011181224 /* FolderAccessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4983CB4857838813832F9A /* FolderAccessService.swift */; };
+		ABF8896163F8BC7BEC9774AA /* FileSystemRenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */; };
 		AEFBB4E2DF1905263921E921 /* AudioMarker-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */; };
 		AF1F24AFBFC934EE0D81E512 /* DirectoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */; };
 		C72F49F17349C2EF421029ED /* BatchID3TagDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */; };
@@ -31,6 +34,7 @@
 		D402F2AFD4E6E8E1E4D73A85 /* ID3MetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */; };
 		DED97CB1B78B0FF7861E2F6D /* LibrarySessionBatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */; };
 		E31879185A9AE9529AB37A9A /* AudioMarker-NOTICE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */; };
+		E3B619B84D1FF757CD3994BA /* FilenameDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */; };
 		F46E0186908F2396826D1FDC /* AudioMarker in Frameworks */ = {isa = PBXBuildFile; productRef = A7933891FEDAB0A9CA08B345 /* AudioMarker */; };
 		FA33F4FA93C48ADB3C6336A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B372790716A9F321A4B9E6B /* ContentView.swift */; };
 /* End PBXBuildFile section */
@@ -48,6 +52,7 @@
 /* Begin PBXFileReference section */
 		0D844078576040C9470DA02E /* BatchTagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchTagEditorView.swift; sourceTree = "<group>"; };
 		17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3MetadataServiceTests.swift; sourceTree = "<group>"; };
+		1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemRenameTests.swift; sourceTree = "<group>"; };
 		28CB13A5EE67DDC4A95BD451 /* TaggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AudioMarker-LICENSE.txt"; sourceTree = "<group>"; };
 		3DBE92EB2514231DD8B9A085 /* BatchID3TagDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchID3TagDraft.swift; sourceTree = "<group>"; };
@@ -58,6 +63,7 @@
 		6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEntry.swift; sourceTree = "<group>"; };
 		6F4983CB4857838813832F9A /* FolderAccessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderAccessService.swift; sourceTree = "<group>"; };
 		72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AudioMarker-NOTICE.txt"; sourceTree = "<group>"; };
+		75135C387FEE0D4E67F5AB84 /* FilenameDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilenameDraft.swift; sourceTree = "<group>"; };
 		8531CE2737527A9AB21D4B7E /* ArtworkEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkEditorView.swift; sourceTree = "<group>"; };
 		8B372790716A9F321A4B9E6B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySessionBatchTests.swift; sourceTree = "<group>"; };
@@ -65,9 +71,11 @@
 		9851B56C64EE665723A11986 /* TaggerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerApp.swift; sourceTree = "<group>"; };
 		A21627B698343C555010AC37 /* TagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditorView.swift; sourceTree = "<group>"; };
 		A57FD6DA3F49A36E44F1A990 /* BatchArtworkEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchArtworkEditorView.swift; sourceTree = "<group>"; };
+		B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySessionFilenameTests.swift; sourceTree = "<group>"; };
 		B5AB392A9ED99171C048A5CE /* FolderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPicker.swift; sourceTree = "<group>"; };
 		B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryListView.swift; sourceTree = "<group>"; };
 		C6805887F8EC2C0075F8441E /* Tagger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tagger.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilenameDraftTests.swift; sourceTree = "<group>"; };
 		CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3TagDraftTests.swift; sourceTree = "<group>"; };
 		D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3TagDraft.swift; sourceTree = "<group>"; };
 		D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3MetadataService.swift; sourceTree = "<group>"; };
@@ -115,6 +123,7 @@
 			children = (
 				3DBE92EB2514231DD8B9A085 /* BatchID3TagDraft.swift */,
 				6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */,
+				75135C387FEE0D4E67F5AB84 /* FilenameDraft.swift */,
 				D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */,
 				FD9067D696D65D34C566BCED /* PresentedError.swift */,
 			);
@@ -195,9 +204,12 @@
 			isa = PBXGroup;
 			children = (
 				435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */,
+				C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */,
+				1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */,
 				17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */,
 				CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */,
 				9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */,
+				B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */,
 			);
 			path = TaggerTests;
 			sourceTree = "<group>";
@@ -301,9 +313,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				C72F49F17349C2EF421029ED /* BatchID3TagDraftTests.swift in Sources */,
+				ABF8896163F8BC7BEC9774AA /* FileSystemRenameTests.swift in Sources */,
+				E3B619B84D1FF757CD3994BA /* FilenameDraftTests.swift in Sources */,
 				2008E8F474A058A124D9184E /* ID3MetadataServiceTests.swift in Sources */,
 				084C5DED5CF48838E143F072 /* ID3TagDraftTests.swift in Sources */,
 				DED97CB1B78B0FF7861E2F6D /* LibrarySessionBatchTests.swift in Sources */,
+				301738DCDD466981EE462B6D /* LibrarySessionFilenameTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,6 +334,7 @@
 				1E60CAE8512B1EE14ED21A0B /* DirectoryEntry.swift in Sources */,
 				AF1F24AFBFC934EE0D81E512 /* DirectoryListView.swift in Sources */,
 				2DB3587714445627FD4FD3D4 /* FileSystemService.swift in Sources */,
+				9445B29F5F68C20B2F48FC87 /* FilenameDraft.swift in Sources */,
 				ABE324AEDC03F5B011181224 /* FolderAccessService.swift in Sources */,
 				28B662ABAD15D180D2DFB1D4 /* FolderPicker.swift in Sources */,
 				2C087BDB24F2CF6CF7729F9A /* FolderTreeView.swift in Sources */,

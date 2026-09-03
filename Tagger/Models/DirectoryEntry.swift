@@ -19,4 +19,11 @@ struct DirectoryEntry: Identifiable, Hashable, Sendable {
     let fileSize: Int?
 
     var id: URL { url }
+
+    static func areInDisplayOrder(_ lhs: DirectoryEntry, _ rhs: DirectoryEntry) -> Bool {
+        if lhs.kind != rhs.kind {
+            return lhs.kind == .folder
+        }
+        return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+    }
 }

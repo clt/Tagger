@@ -33,7 +33,7 @@ struct TagEditorView: View {
     private func editor(for fileURL: URL) -> some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(fileURL.deletingPathExtension().lastPathComponent)
+                Text(session.filenameDraft?.proposedFilename ?? fileURL.lastPathComponent)
                     .font(.title2.weight(.semibold))
                     .lineLimit(1)
 
@@ -50,6 +50,24 @@ struct TagEditorView: View {
             Divider()
 
             Form {
+                Section("File") {
+                    LabeledContent("File Name") {
+                        HStack(spacing: 4) {
+                            TextField("File Name", text: filenameStemBinding)
+                                .labelsHidden()
+                                .accessibilityLabel("File name")
+                                .accessibilityHint(
+                                    "The \(session.filenameDraft?.extensionSuffix ?? ".mp3") extension is preserved."
+                                )
+                                .help("Edit the file name. The MP3 extension is preserved.")
+
+                            Text(session.filenameDraft?.extensionSuffix ?? ".mp3")
+                                .foregroundStyle(.secondary)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                }
+
                 Section("Basic") {
                     TextField("Title", text: textBinding(\.title))
                     TextField("Artist", text: textBinding(\.artist))
@@ -90,6 +108,7 @@ struct TagEditorView: View {
                 }
             }
             .formStyle(.grouped)
+            .disabled(session.isSaving)
 
             Divider()
 
@@ -125,6 +144,16 @@ struct TagEditorView: View {
             }
             .padding()
         }
+    }
+
+    private var filenameStemBinding: Binding<String> {
+        Binding(
+            get: { session.filenameDraft?.stem ?? "" },
+            set: { newValue in
+                session.filenameDraft?.stem = newValue
+                session.statusMessage = nil
+            }
+        )
     }
 
     private func textBinding(_ keyPath: WritableKeyPath<ID3TagDraft, String>) -> Binding<String> {
