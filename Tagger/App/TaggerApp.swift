@@ -4,10 +4,11 @@ import SwiftUI
 struct TaggerApp: App {
     @NSApplicationDelegateAdaptor(TaggerApplicationDelegate.self)
     private var applicationDelegate
+    private let autoTaggingService: any AutoTaggingServicing = AutoTaggingService()
 
     var body: some Scene {
         WindowGroup("Tagger", id: "main") {
-            TaggerWindow()
+            TaggerWindow(autoTaggingService: autoTaggingService)
         }
         .defaultSize(width: 1_240, height: 780)
         .commands {
@@ -17,7 +18,13 @@ struct TaggerApp: App {
 }
 
 private struct TaggerWindow: View {
-    @State private var session = LibrarySession()
+    @State private var session: LibrarySession
+
+    init(autoTaggingService: any AutoTaggingServicing) {
+        _session = State(
+            initialValue: LibrarySession(autoTaggingService: autoTaggingService)
+        )
+    }
 
     var body: some View {
         ContentView(session: session)

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DirectoryListView: View {
     @Bindable var session: LibrarySession
+    // Track tentative List selection so cancelled navigation can restore the highlight.
+    @State private var displayedSelection: Set<URL> = []
 
     var body: some View {
         List(selection: selection) {
@@ -19,6 +21,23 @@ struct DirectoryListView: View {
                             }
                         }
                     }
+            }
+        }
+        .disabled(session.isSaving)
+        .onAppear {
+            displayedSelection = session.selectedEntryURLs
+        }
+        .onChange(of: session.selectedEntryURLs) { _, selection in
+            displayedSelection = selection
+        }
+        .onChange(of: session.isShowingUnsavedChangesAlert) { _, isShowing in
+            if !isShowing {
+                displayedSelection = session.selectedEntryURLs
+            }
+        }
+        .onChange(of: displayedSelection) { _, _ in
+            if !session.isShowingUnsavedChangesAlert {
+                displayedSelection = session.selectedEntryURLs
             }
         }
         .overlay {
@@ -44,8 +63,9 @@ struct DirectoryListView: View {
 
     private var selection: Binding<Set<URL>> {
         Binding(
-            get: { session.selectedEntryURLs },
+            get: { displayedSelection },
             set: { newValue in
+                displayedSelection = newValue
                 session.requestSelectEntries(newValue)
             }
         )

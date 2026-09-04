@@ -32,17 +32,29 @@ struct TagEditorView: View {
 
     private func editor(for fileURL: URL) -> some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(session.filenameDraft?.proposedFilename ?? fileURL.lastPathComponent)
-                    .font(.title2.weight(.semibold))
-                    .lineLimit(1)
+            HStack(alignment: .center, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(session.filenameDraft?.proposedFilename ?? fileURL.lastPathComponent)
+                        .font(.title2.weight(.semibold))
+                        .lineLimit(1)
 
-                Text(fileURL.path)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .textSelection(.enabled)
+                    Text(fileURL.path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                }
+
+                Spacer()
+
+                Button {
+                    session.startAutoTagSearch()
+                } label: {
+                    Label("Find Tags…", systemImage: "wand.and.stars")
+                }
+                .disabled(!session.canFindTags)
+                .help("Find tag suggestions from the file name and MusicBrainz")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()

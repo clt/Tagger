@@ -101,7 +101,7 @@ final class WindowCloseCoordinator: NSObject, NSWindowDelegate {
             return previousDelegateAllowsClose(sender)
         }
 
-        guard !session.isSaving else {
+        guard !session.isSaving, !session.isShowingAutoTagSheet else {
             NSSound.beep()
             return false
         }
@@ -243,7 +243,7 @@ private final class WindowCloseRegistry {
         }
 
         guard !liveCoordinators.contains(where: {
-            $0.session.isSaving || $0.isResolvingDecision
+            $0.session.isSaving || $0.session.isShowingAutoTagSheet || $0.isResolvingDecision
         }) else {
             NSSound.beep()
             return .terminateCancel

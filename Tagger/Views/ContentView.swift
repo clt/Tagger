@@ -15,6 +15,12 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 430, ideal: 590)
         }
         .navigationSplitViewStyle(.balanced)
+        .sheet(
+            isPresented: $session.isShowingAutoTagSheet,
+            onDismiss: { session.autoTagSheetDidDismiss() }
+        ) {
+            AutoTagReviewView(session: session)
+        }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -74,8 +80,10 @@ struct ContentView: View {
             \.taggerCommandActions,
             TaggerCommandActions(
                 openFolder: { session.chooseFolder() },
+                findTags: { session.startAutoTagSearch() },
                 save: { Task { await session.save() } },
                 revert: { session.revert() },
+                canFindTags: session.canFindTags,
                 canSave: session.canSave,
                 canRevert: session.canRevert
             )

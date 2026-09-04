@@ -2,6 +2,8 @@ import SwiftUI
 
 struct FolderTreeView: View {
     @Bindable var session: LibrarySession
+    // Track tentative List selection so cancelled navigation can restore the highlight.
+    @State private var displayedSelection: URL?
 
     var body: some View {
         Group {
@@ -10,6 +12,7 @@ struct FolderTreeView: View {
                     FolderTreeNodeView(url: rootURL, session: session)
                 }
                 .listStyle(.sidebar)
+                .disabled(session.isSaving)
             } else {
                 ContentUnavailableView {
                     Label("No Folder Open", systemImage: "folder")
@@ -22,13 +25,30 @@ struct FolderTreeView: View {
                 }
             }
         }
+        .onAppear {
+            displayedSelection = session.selectedFolderURL
+        }
+        .onChange(of: session.selectedFolderURL) { _, selection in
+            displayedSelection = selection
+        }
+        .onChange(of: session.isShowingUnsavedChangesAlert) { _, isShowing in
+            if !isShowing {
+                displayedSelection = session.selectedFolderURL
+            }
+        }
+        .onChange(of: displayedSelection) { _, _ in
+            if !session.isShowingUnsavedChangesAlert {
+                displayedSelection = session.selectedFolderURL
+            }
+        }
         .navigationTitle("Folders")
     }
 
     private var selection: Binding<URL?> {
         Binding(
-            get: { session.selectedFolderURL },
+            get: { displayedSelection },
             set: { newValue in
+                displayedSelection = newValue
                 if let newValue {
                     session.requestSelectFolder(newValue)
                 }
