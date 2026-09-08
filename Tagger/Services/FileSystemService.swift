@@ -43,12 +43,12 @@ actor FileSystemService: FileRenaming {
                     )
                 )
             } else if values.isRegularFile == true,
-                      url.pathExtension.caseInsensitiveCompare("mp3") == .orderedSame {
+                      let kind = DirectoryEntry.Kind(audioPathExtension: url.pathExtension) {
                 entries.append(
                     DirectoryEntry(
                         url: url.standardizedFileURL,
                         name: url.lastPathComponent,
-                        kind: .mp3,
+                        kind: kind,
                         fileSize: values.fileSize
                     )
                 )
@@ -88,14 +88,14 @@ actor FileSystemService: FileRenaming {
         }
         guard sourceValues.isRegularFile == true,
               sourceValues.isSymbolicLink != true,
-              source.pathExtension.caseInsensitiveCompare("mp3") == .orderedSame else {
+              DirectoryEntry.Kind(audioPathExtension: source.pathExtension) != nil else {
             throw FileRenameError.sourceUnavailable(source.lastPathComponent)
         }
 
         let fileNameURL = URL(fileURLWithPath: fileName)
         let stem = fileNameURL.deletingPathExtension().lastPathComponent
         guard fileNameURL.lastPathComponent == fileName,
-              fileNameURL.pathExtension.caseInsensitiveCompare("mp3") == .orderedSame,
+              fileNameURL.pathExtension == source.pathExtension,
               FilenameDraft.validationMessage(for: stem) == nil else {
             throw FileRenameError.invalidFileName
         }
@@ -193,9 +193,9 @@ enum FileRenameError: LocalizedError, Equatable {
         case .sourceMissing(let fileName):
             return "“\(fileName)” can’t be found. Refresh the folder and try again."
         case .sourceUnavailable(let fileName):
-            return "“\(fileName)” is no longer a regular MP3 file. Refresh the folder and try again."
+            return "“\(fileName)” is no longer a regular MP3 or M4A file. Refresh the folder and try again."
         case .invalidFileName:
-            return "Choose a valid MP3 file name."
+            return "Choose a valid audio file name and keep the original extension."
         case .fileNameTooLong:
             return "The file name is too long for this folder. Shorten it and try again."
         case .destinationExists(let fileName):

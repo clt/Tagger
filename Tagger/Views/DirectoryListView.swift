@@ -46,15 +46,15 @@ struct DirectoryListView: View {
                     .padding()
             } else if session.rootURL != nil, session.entries.isEmpty {
                 ContentUnavailableView(
-                    "No MP3 Files",
+                    "No Audio Files",
                     systemImage: "music.note",
-                    description: Text("This folder has no subfolders or MP3 files.")
+                    description: Text("This folder has no subfolders, MP3 files, or M4A files.")
                 )
             } else if session.rootURL == nil {
                 ContentUnavailableView(
                     "Choose a Folder",
                     systemImage: "folder",
-                    description: Text("Folders and MP3 files will appear here.")
+                    description: Text("Folders, MP3 files, and M4A files will appear here.")
                 )
             }
         }

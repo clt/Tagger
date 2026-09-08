@@ -30,6 +30,7 @@ struct AudioFileSnapshot: Equatable, Sendable {
     let fileSize: Int
     let modificationDate: Date?
     let tagFingerprint: Data
+    var fileIdentity: String? = nil
 }
 
 actor ID3MetadataService: ID3MetadataServicing {

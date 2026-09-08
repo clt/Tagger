@@ -25,7 +25,7 @@ struct AutoTagReviewView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Find Tags")
                     .font(.title2.weight(.semibold))
-                Text(session.selectedFileURL?.lastPathComponent ?? "Selected MP3")
+                Text(session.selectedFileURL?.lastPathComponent ?? "Selected Audio File")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

@@ -27,6 +27,45 @@ final class FilenameTagInferenceTests: XCTestCase {
         XCTAssertEqual(values.title, "Song Name")
     }
 
+    func testInfersZeroPaddedTrackWithWhitespaceForM4AAndMP3() {
+        let examples = [
+            ("01 Safe From Harm.m4a", "1", "Safe From Harm", nil as String?),
+            ("09 Hymn of the Big Wheel.m4a", "9", "Hymn of the Big Wheel", nil),
+            ("001 Roads.mp3", "1", "Roads", nil),
+            ("03 Portishead - Glory Box.mp3", "3", "Glory Box", "Portishead"),
+        ]
+        for (name, track, title, artist) in examples {
+            let values = inference.values(for: URL(fileURLWithPath: "/Music/" + name))
+            XCTAssertEqual(values.trackNumber, track, name)
+            XCTAssertEqual(values.title, title, name)
+            XCTAssertEqual(values.artist, artist, name)
+            XCTAssertNil(values.discNumber, name)
+        }
+    }
+
+    func testDoesNotTreatOrdinaryNumericTitlesAsWhitespaceTrackPrefixes() {
+        for stem in ["99 Luftballons", "1979", "4 Minutes", "01", "001", "00 Intro", "01 1979"] {
+            for fileExtension in ["m4a", "mp3"] {
+                let values = inference.values(for: URL(fileURLWithPath: "/Music/\(stem).\(fileExtension)"))
+                XCTAssertEqual(values.title, stem)
+                XCTAssertNil(values.trackNumber, stem)
+                XCTAssertNil(values.discNumber, stem)
+            }
+        }
+    }
+
+    func testM4ASearchSeedOmitsZeroPaddedTrackPrefix() {
+        let request = AutoTagSearchRequest(
+            fileURL: URL(fileURLWithPath: "/Music/01 Safe From Harm.m4a"),
+            currentDraft: ID3TagDraft()
+        )
+
+        XCTAssertEqual(
+            inference.searchSeed(for: request),
+            MusicBrainzSearchSeed(title: "Safe From Harm", artist: nil, album: nil)
+        )
+    }
+
     func testPreservesOrdinaryHyphensAndAvoidsAmbiguousArtistSplit() {
         let hyphenated = inference.values(
             for: URL(fileURLWithPath: "/Music/Spider-Man Theme.mp3")

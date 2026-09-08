@@ -83,7 +83,7 @@ struct FilenameTagInference: Sendable {
               let trackRange = Range(match.range(at: 2), in: value),
               let remainderRange = Range(match.range(at: 3), in: value),
               let track = Int(value[trackRange]),
-              track > 0 else { return nil }
+              track > 0 else { return parsePaddedWhitespacePrefix(value) }
 
         let disc: String?
         if match.range(at: 1).location != NSNotFound,
@@ -100,6 +100,22 @@ struct FilenameTagInference: Sendable {
             trackNumber: String(track),
             remainder: normalize(String(value[remainderRange]))
         )
+    }
+
+    private func parsePaddedWhitespacePrefix(
+        _ value: String
+    ) -> (discNumber: String?, trackNumber: String, remainder: String)? {
+        // A leading zero distinguishes common track prefixes from titles such as
+        // "99 Luftballons". Keep entirely numeric names ambiguous rather than guessing.
+        let pieces = value.split(maxSplits: 1, whereSeparator: \.isWhitespace)
+        guard pieces.count == 2,
+              (2...3).contains(pieces[0].count),
+              pieces[0].first == "0",
+              pieces[0].allSatisfy({ $0 >= "0" && $0 <= "9" }),
+              let track = Int(pieces[0]), track > 0 else { return nil }
+        let remainder = normalize(String(pieces[1]))
+        guard remainder.rangeOfCharacter(from: .letters) != nil else { return nil }
+        return (discNumber: nil, trackNumber: String(track), remainder: remainder)
     }
 
     private func nonEmpty(_ value: String) -> String? {

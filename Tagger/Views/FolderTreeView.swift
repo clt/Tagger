@@ -17,7 +17,7 @@ struct FolderTreeView: View {
                 ContentUnavailableView {
                     Label("No Folder Open", systemImage: "folder")
                 } description: {
-                    Text("Choose a folder to browse its MP3 files.")
+                    Text("Choose a folder to browse its MP3 and M4A files.")
                 } actions: {
                     Button("Open Folder…") {
                         session.chooseFolder()

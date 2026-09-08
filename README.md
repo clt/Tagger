@@ -1,6 +1,6 @@
 # Tagger
 
-Tagger is a small native macOS app for browsing folders of MP3 files and editing common ID3 tags.
+Tagger is a small native macOS app for browsing folders of MP3 and M4A files and editing common music tags.
 
 ![Tagger showing a folder hierarchy, MP3 file list, and ID3 tag editor](docs/images/tagger-main-window.jpg)
 
@@ -8,19 +8,21 @@ Tagger is a small native macOS app for browsing folders of MP3 files and editing
 
 - Three-column folder tree, file list, and tag editor
 - Single-file editing plus Finder-style multi-selection for batch editing
-- Single-file filename editing with the MP3 extension preserved
+- Single-file filename editing with the original extension preserved
 - Review-first tag suggestions from file names and MusicBrainz
 - Mixed-value protection: batch saves change only fields explicitly marked Apply
 - ID3v2.3 and ID3v2.4 reading and writing
+- MP4 metadata reading and writing for M4A files containing AAC or Apple Lossless (ALAC) audio
 - Title, artist, album, album artist, track, disc, year, genre, composer, comment, lyrics, and artwork
 - Explicit Save and Revert controls, including Command-S
 - Save/discard/cancel confirmation before navigating away, closing, or quitting
 - Sandboxed access to user-selected folders, remembered between launches
-- Protection against overwriting externally changed, unsupported ID3v2.2, or malformed tags
+- Protection against overwriting externally changed files or unsupported or malformed metadata
+- Audio bytes and unknown ID3 frames or MP4 atoms preserved when saving supported files
 
 ## Auto-tag lookup
 
-Choose **Find Tags…** (Command-Shift-T) for a single selected MP3. Suggestions
+Choose **Find Tags…** (Command-Shift-T) for a single selected MP3 or M4A. Suggestions
 inferred from its file name appear immediately and work offline. For online
 suggestions, review or edit the title, artist, and album search terms, then choose
 **Search MusicBrainz**. The terms start with the current editor draft, falling
@@ -31,14 +33,14 @@ Choose a candidate to compare its suggestions with your current draft. Empty
 fields are checked by default; replacing an existing value requires checking its
 field. Missing suggestions never erase values. **Apply to Draft** merges only
 checked fields into your existing edits. Review or edit that draft, then choose
-**Save** (Command-S) to write it to the MP3, or **Revert** to discard all unsaved
+**Save** (Command-S) to write it to the audio file, or **Revert** to discard all unsaved
 changes. Searching, reviewing, applying, and cancelling never write to the file.
 Applied suggestions use the same unsaved-change protections as manual edits.
 
 Online lookup is opt-in: opening Find Tags does not contact MusicBrainz. Choosing
 Search MusicBrainz sends the displayed title, artist, and album over HTTPS.
 Choosing a MusicBrainz candidate may fetch its release details. Tagger does not
-upload the MP3, artwork, full file path, comments, or lyrics. Requests share an
+upload the audio file, artwork, full file path, comments, or lyrics. Requests share an
 application-wide rate limiter. You can use filename suggestions while an online
 search is pending or unavailable. MusicBrainz core metadata is made available
 under CC0; MusicBrainz remains the source of the lookup results.
@@ -79,9 +81,11 @@ and distribution signing settings in `project.yml` before sharing the app.
 
 ## Initial-version limitations
 
-Batch editing works on MP3 files in the currently displayed folder; use Command-click or Shift-click to select them. Batch saves are sequential, and a failed file does not roll back files already saved. Auto-tag lookup and filename editing are currently single-file only. Auto-tag lookup is text-based and does not fingerprint audio; it proposes title, artist, album, album artist, track, disc, and year while leaving genre, composer, comments, lyrics, artwork, and the filename unchanged. The editor exposes one primary artwork image, one comment, plain lyrics, integer track/disc numbers without totals, and a four-digit year. Saving may collapse multiple artwork, comment, or lyrics variants into the displayed primary value, so test with copies before using irreplaceable files.
+Batch editing works on MP3 and M4A files in the currently displayed folder, including mixed selections; use Command-click or Shift-click to select them. Batch saves are sequential, and a failed file does not roll back files already saved. Auto-tag lookup and filename editing are currently single-file only. Auto-tag lookup is text-based and does not fingerprint audio; it proposes title, artist, album, album artist, track, disc, and year while leaving genre, composer, comments, lyrics, artwork, and the filename unchanged. Artwork can be added, replaced, or removed manually in the draft and is written only on Save. The editor exposes one primary artwork image, one comment, plain lyrics, integer track/disc numbers without totals, and a four-digit year. Saving may collapse multiple artwork, comment, or lyrics variants into the displayed primary value, so test with copies before using irreplaceable files.
 
-Tag support is provided by the Apache-2.0-licensed AudioMarker 0.1.1 package, pinned exactly for repeatable builds.
+M4A support edits MP4 tags without converting or re-encoding AAC or ALAC audio. M4A files must be 512 MB or smaller in this version. DRM-protected files, fragmented containers, files with video, and unsupported or malformed layouts are rejected without modification. MP3 files with unsupported ID3v2.2 tags are also rejected. Renaming preserves the original extension, including its capitalization, and does not convert between formats.
+
+MP3 tag support is provided by the Apache-2.0-licensed AudioMarker 0.1.1 package, pinned exactly for repeatable builds. M4A tag support is implemented in Tagger without additional dependencies.
 
 ## License
 

@@ -59,7 +59,7 @@ final class LibrarySession {
     init(
         fileSystem: FileSystemService = FileSystemService(),
         fileRenamer: (any FileRenaming)? = nil,
-        metadataService: any ID3MetadataServicing = ID3MetadataService(),
+        metadataService: any ID3MetadataServicing = AudioMetadataService(),
         autoTaggingService: any AutoTaggingServicing = AutoTaggingService(),
         folderAccess: FolderAccessService = FolderAccessService(),
         folderPicker: FolderPicker = FolderPicker()
@@ -142,16 +142,16 @@ final class LibrarySession {
 
     var unsavedChangesMessage: String {
         if selectedFileURLs.count > 1 {
-            return "The selected \(selectedFileURLs.count) MP3 files have unsaved tag changes."
+            return "The selected \(selectedFileURLs.count) audio files have unsaved tag changes."
         }
 
         if hasUnsavedFilenameChange, hasUnsavedTagChanges {
-            return "The selected MP3 has unsaved file name and tag changes."
+            return "The selected audio file has unsaved file name and tag changes."
         }
         if hasUnsavedFilenameChange {
-            return "The selected MP3 has an unsaved file name change."
+            return "The selected audio file has an unsaved file name change."
         }
-        return "The selected MP3 has unsaved tag changes."
+        return "The selected audio file has unsaved tag changes."
     }
 
     var saveButtonTitle: String {
@@ -191,7 +191,7 @@ final class LibrarySession {
     func requestSelectEntries(_ urls: Set<URL>) {
         let selectedEntries = entries.filter { urls.contains($0.url) }
         let fileURLs = selectedEntries
-            .filter { $0.kind == .mp3 }
+            .filter(\.isAudioFile)
             .map(\.url)
 
         if !fileURLs.isEmpty {
@@ -340,7 +340,7 @@ final class LibrarySession {
                     applyPersistedTag(persistedTag, draftBeingSaved: draftBeingSaved)
                     presentedError = PresentedError(
                         title: "Tags Saved, File Not Renamed",
-                        message: "The ID3 tags were saved, but the file name wasn’t changed. \(error.localizedDescription)"
+                        message: "The tags were saved, but the file name wasn’t changed. \(error.localizedDescription)"
                     )
                 } else {
                     present(error, title: "Couldn’t Rename File")

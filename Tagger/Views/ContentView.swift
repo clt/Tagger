@@ -29,7 +29,7 @@ struct ContentView: View {
                     Label("Open Folder", systemImage: "folder.badge.plus")
                 }
                 .disabled(session.isSaving)
-                .help("Choose a folder of MP3 files")
+                .help("Choose a folder of MP3 and M4A files")
 
                 Button {
                     session.revert()

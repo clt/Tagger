@@ -9,8 +9,10 @@
 /* Begin PBXBuildFile section */
 		014B82C7B14FFA8E8B81C27E /* AutoTagModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4534AA08257DD09320A20D2E /* AutoTagModels.swift */; };
 		084C5DED5CF48838E143F072 /* ID3TagDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */; };
+		0EB753F04ADF3AB766A2B98E /* M4AMetadataServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0C70A3BB1D5472C83BE9D1 /* M4AMetadataServiceTests.swift */; };
 		1C0BFD415EA40A2A7CF1F13E /* TaggerCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */; };
 		1D124E3BDE153FB314AF91FC /* PresentedError.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9067D696D65D34C566BCED /* PresentedError.swift */; };
+		1D4E2DABED415C97817D59AB /* M4AMetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB5E064E72B6661ED94EBA9 /* M4AMetadataService.swift */; };
 		1E60CAE8512B1EE14ED21A0B /* DirectoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */; };
 		2008E8F474A058A124D9184E /* ID3MetadataServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */; };
 		223FC3FF413F97364FCA3B65 /* TagEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21627B698343C555010AC37 /* TagEditorView.swift */; };
@@ -20,6 +22,7 @@
 		2DB3587714445627FD4FD3D4 /* FileSystemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F480128043CF43CA40984F /* FileSystemService.swift */; };
 		2F0CDD6662BDDC5013F5E1FA /* ID3TagDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */; };
 		301738DCDD466981EE462B6D /* LibrarySessionFilenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */; };
+		4475DF3675AA831BF86D948E /* AudioMetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4200732D40945EA64590D476 /* AudioMetadataService.swift */; };
 		44EE851A4D60E3869616C7D0 /* AutoTagModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43102A4DBABFE80D4B6A951E /* AutoTagModelsTests.swift */; };
 		4A1AC22ABF16DA33429D17E3 /* BatchTagEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D844078576040C9470DA02E /* BatchTagEditorView.swift */; };
 		4FD62F19EC03C1587A8848E4 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CDAFBFC8B84D5188B049932 /* HTTPClient.swift */; };
@@ -41,6 +44,8 @@
 		C72F49F17349C2EF421029ED /* BatchID3TagDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */; };
 		D355B4F69EDD182327E188FB /* BatchArtworkEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57FD6DA3F49A36E44F1A990 /* BatchArtworkEditorView.swift */; };
 		D402F2AFD4E6E8E1E4D73A85 /* ID3MetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */; };
+		D74215A5CDA3DE67A0663A83 /* FileSystemContentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */; };
+		DA5257797645876D91C5BAAC /* M4AContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67959527602771E0967DE32D /* M4AContainer.swift */; };
 		DED97CB1B78B0FF7861E2F6D /* LibrarySessionBatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */; };
 		E31879185A9AE9529AB37A9A /* AudioMarker-NOTICE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */; };
 		E3B619B84D1FF757CD3994BA /* FilenameDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */; };
@@ -71,6 +76,7 @@
 		3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AudioMarker-LICENSE.txt"; sourceTree = "<group>"; };
 		3DBE92EB2514231DD8B9A085 /* BatchID3TagDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchID3TagDraft.swift; sourceTree = "<group>"; };
 		41F66037FEE285B91E068983 /* FilenameTagInferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilenameTagInferenceTests.swift; sourceTree = "<group>"; };
+		4200732D40945EA64590D476 /* AudioMetadataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMetadataService.swift; sourceTree = "<group>"; };
 		43102A4DBABFE80D4B6A951E /* AutoTagModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTagModelsTests.swift; sourceTree = "<group>"; };
 		4330C8817C3A820A2B7FF6BE /* FolderTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderTreeView.swift; sourceTree = "<group>"; };
 		435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchID3TagDraftTests.swift; sourceTree = "<group>"; };
@@ -80,6 +86,7 @@
 		518AFACEEB8F8BDA6A1FF6DB /* WindowCloseGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCloseGuard.swift; sourceTree = "<group>"; };
 		5524C75B688E3E3DD8700FDB /* AutoTaggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTaggingService.swift; sourceTree = "<group>"; };
 		568639FD9BEF086685FC0225 /* FilenameTagInference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilenameTagInference.swift; sourceTree = "<group>"; };
+		67959527602771E0967DE32D /* M4AContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AContainer.swift; sourceTree = "<group>"; };
 		6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEntry.swift; sourceTree = "<group>"; };
 		6F4983CB4857838813832F9A /* FolderAccessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderAccessService.swift; sourceTree = "<group>"; };
 		72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AudioMarker-NOTICE.txt"; sourceTree = "<group>"; };
@@ -92,6 +99,7 @@
 		9851B56C64EE665723A11986 /* TaggerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerApp.swift; sourceTree = "<group>"; };
 		A21627B698343C555010AC37 /* TagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditorView.swift; sourceTree = "<group>"; };
 		A57FD6DA3F49A36E44F1A990 /* BatchArtworkEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchArtworkEditorView.swift; sourceTree = "<group>"; };
+		AF0C70A3BB1D5472C83BE9D1 /* M4AMetadataServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AMetadataServiceTests.swift; sourceTree = "<group>"; };
 		B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySessionFilenameTests.swift; sourceTree = "<group>"; };
 		B5AB392A9ED99171C048A5CE /* FolderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPicker.swift; sourceTree = "<group>"; };
 		B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryListView.swift; sourceTree = "<group>"; };
@@ -101,9 +109,11 @@
 		D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3TagDraft.swift; sourceTree = "<group>"; };
 		D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3MetadataService.swift; sourceTree = "<group>"; };
 		DCEBF5D07ABF747D7735E039 /* AutoTagReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTagReviewView.swift; sourceTree = "<group>"; };
+		DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemContentsTests.swift; sourceTree = "<group>"; };
 		E432006378DB65229FF3C8FC /* LibrarySession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySession.swift; sourceTree = "<group>"; };
 		FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerCommands.swift; sourceTree = "<group>"; };
 		FD9067D696D65D34C566BCED /* PresentedError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentedError.swift; sourceTree = "<group>"; };
+		FEB5E064E72B6661ED94EBA9 /* M4AMetadataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AMetadataService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +166,7 @@
 		80726DCD02CA309866624E2B /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				4200732D40945EA64590D476 /* AudioMetadataService.swift */,
 				5524C75B688E3E3DD8700FDB /* AutoTaggingService.swift */,
 				568639FD9BEF086685FC0225 /* FilenameTagInference.swift */,
 				93F480128043CF43CA40984F /* FileSystemService.swift */,
@@ -163,6 +174,8 @@
 				B5AB392A9ED99171C048A5CE /* FolderPicker.swift */,
 				4CDAFBFC8B84D5188B049932 /* HTTPClient.swift */,
 				D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */,
+				67959527602771E0967DE32D /* M4AContainer.swift */,
+				FEB5E064E72B6661ED94EBA9 /* M4AMetadataService.swift */,
 				0EC6D41C7AF42222A4A0E8B9 /* MusicBrainzClient.swift */,
 			);
 			path = Services;
@@ -236,12 +249,14 @@
 				435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */,
 				C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */,
 				41F66037FEE285B91E068983 /* FilenameTagInferenceTests.swift */,
+				DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */,
 				1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */,
 				17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */,
 				CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */,
 				2FE1622F316288B862116A40 /* LibrarySessionAutoTagTests.swift */,
 				9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */,
 				B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */,
+				AF0C70A3BB1D5472C83BE9D1 /* M4AMetadataServiceTests.swift */,
 				2D83A3B9DCAF3F2962D7A2D7 /* MusicBrainzClientTests.swift */,
 			);
 			path = TaggerTests;
@@ -348,6 +363,7 @@
 				44EE851A4D60E3869616C7D0 /* AutoTagModelsTests.swift in Sources */,
 				F0315B8DB66AA618A296F15A /* AutoTaggingServiceTests.swift in Sources */,
 				C72F49F17349C2EF421029ED /* BatchID3TagDraftTests.swift in Sources */,
+				D74215A5CDA3DE67A0663A83 /* FileSystemContentsTests.swift in Sources */,
 				ABF8896163F8BC7BEC9774AA /* FileSystemRenameTests.swift in Sources */,
 				E3B619B84D1FF757CD3994BA /* FilenameDraftTests.swift in Sources */,
 				C168C46F1DE25C50EB196FD1 /* FilenameTagInferenceTests.swift in Sources */,
@@ -356,6 +372,7 @@
 				83CACAC87DF4C72D6F15582E /* LibrarySessionAutoTagTests.swift in Sources */,
 				DED97CB1B78B0FF7861E2F6D /* LibrarySessionBatchTests.swift in Sources */,
 				301738DCDD466981EE462B6D /* LibrarySessionFilenameTests.swift in Sources */,
+				0EB753F04ADF3AB766A2B98E /* M4AMetadataServiceTests.swift in Sources */,
 				927EA3B0863426C4626A0965 /* MusicBrainzClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -365,6 +382,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				97365BD6381152DCC8FA797A /* ArtworkEditorView.swift in Sources */,
+				4475DF3675AA831BF86D948E /* AudioMetadataService.swift in Sources */,
 				014B82C7B14FFA8E8B81C27E /* AutoTagModels.swift in Sources */,
 				E568E50E56BE96DE1FA876E0 /* AutoTagReviewView.swift in Sources */,
 				5F43630D935120FC948453FA /* AutoTaggingService.swift in Sources */,
@@ -384,6 +402,8 @@
 				D402F2AFD4E6E8E1E4D73A85 /* ID3MetadataService.swift in Sources */,
 				2F0CDD6662BDDC5013F5E1FA /* ID3TagDraft.swift in Sources */,
 				5572BB273DC61F0CBE5E5A78 /* LibrarySession.swift in Sources */,
+				DA5257797645876D91C5BAAC /* M4AContainer.swift in Sources */,
+				1D4E2DABED415C97817D59AB /* M4AMetadataService.swift in Sources */,
 				8095A92ADAF7606372A89C08 /* MusicBrainzClient.swift in Sources */,
 				1D124E3BDE153FB314AF91FC /* PresentedError.swift in Sources */,
 				223FC3FF413F97364FCA3B65 /* TagEditorView.swift in Sources */,

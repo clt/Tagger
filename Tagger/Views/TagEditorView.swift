@@ -16,14 +16,14 @@ struct TagEditorView: View {
                     ContentUnavailableView(
                         "Tags Unavailable",
                         systemImage: "exclamationmark.triangle",
-                        description: Text("Choose another MP3 or try opening this file again.")
+                        description: Text("Choose another audio file or try opening this file again.")
                     )
                 }
             } else {
                 ContentUnavailableView(
-                    "Select an MP3",
+                    "Select an Audio File",
                     systemImage: "tag",
-                    description: Text("Select a file to view and edit its ID3 tags.")
+                    description: Text("Select an MP3 or M4A file to view and edit its tags.")
                 )
             }
         }
@@ -69,11 +69,11 @@ struct TagEditorView: View {
                                 .labelsHidden()
                                 .accessibilityLabel("File name")
                                 .accessibilityHint(
-                                    "The \(session.filenameDraft?.extensionSuffix ?? ".mp3") extension is preserved."
+                                    "The \(session.filenameDraft?.extensionSuffix ?? ".\(fileURL.pathExtension)") extension is preserved."
                                 )
-                                .help("Edit the file name. The MP3 extension is preserved.")
+                                .help("Edit the file name. The original extension is preserved.")
 
-                            Text(session.filenameDraft?.extensionSuffix ?? ".mp3")
+                            Text(session.filenameDraft?.extensionSuffix ?? ".\(fileURL.pathExtension)")
                                 .foregroundStyle(.secondary)
                                 .accessibilityHidden(true)
                         }
