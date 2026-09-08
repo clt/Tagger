@@ -13,7 +13,7 @@ struct BatchTagEditorView: View {
                 ContentUnavailableView(
                     "Tags Unavailable",
                     systemImage: "exclamationmark.triangle",
-                    description: Text("Choose another group of MP3 files and try again.")
+                    description: Text("Choose another group of audio files and try again.")
                 )
             }
         }
@@ -145,7 +145,7 @@ struct BatchTagEditorView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(!session.canSave)
-            .accessibilityHint("Writes the applied fields to every selected MP3 file")
+            .accessibilityHint("Writes the applied fields to every selected audio file")
         }
         .padding()
     }
@@ -197,7 +197,7 @@ struct BatchTagEditorView: View {
     }
 
     private var selectionDescription: String {
-        "\(fileCount) \(fileCount == 1 ? "MP3 file" : "MP3 files") selected"
+        "\(fileCount) \(fileCount == 1 ? "audio file" : "audio files") selected"
     }
 
     private var saveButtonTitle: String {

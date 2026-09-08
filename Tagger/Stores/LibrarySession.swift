@@ -30,30 +30,44 @@ final class LibrarySession {
     var saveProgressFilename: String?
     var statusMessage: String?
     var presentedError: PresentedError?
+    var isShowingAutoTagSheet = false
+    var autoTagPhase: AutoTagPhase = .idle
+    var autoTagCandidates: [AutoTagCandidate] = []
+    var autoTagReview: AutoTagReviewDraft?
+    var autoTagMessage: String?
+    var autoTagSearchTitle = ""
+    var autoTagSearchArtist = ""
+    var autoTagSearchAlbum = ""
 
     @ObservationIgnored private let fileSystem: FileSystemService
     @ObservationIgnored private let fileRenamer: any FileRenaming
     @ObservationIgnored private let metadataService: any ID3MetadataServicing
+    @ObservationIgnored private let autoTaggingService: any AutoTaggingServicing
     @ObservationIgnored private let folderAccess: FolderAccessService
     @ObservationIgnored private let folderPicker: FolderPicker
     @ObservationIgnored private var directoryLoadTask: Task<Void, Never>?
     @ObservationIgnored private var tagLoadTask: Task<Void, Never>?
+    @ObservationIgnored private var autoTagTask: Task<Void, Never>?
+    @ObservationIgnored private var autoTagRequest: AutoTagSearchRequest?
     @ObservationIgnored private var folderLoadTasks: [URL: Task<Void, Never>] = [:]
     @ObservationIgnored private var pendingNavigation: PendingNavigation?
     @ObservationIgnored private var didAttemptRestore = false
     @ObservationIgnored private var libraryGeneration = 0
     @ObservationIgnored private var selectionGeneration = 0
+    @ObservationIgnored private var autoTagGeneration = 0
 
     init(
         fileSystem: FileSystemService = FileSystemService(),
         fileRenamer: (any FileRenaming)? = nil,
-        metadataService: any ID3MetadataServicing = ID3MetadataService(),
+        metadataService: any ID3MetadataServicing = AudioMetadataService(),
+        autoTaggingService: any AutoTaggingServicing = AutoTaggingService(),
         folderAccess: FolderAccessService = FolderAccessService(),
         folderPicker: FolderPicker = FolderPicker()
     ) {
         self.fileSystem = fileSystem
         self.fileRenamer = fileRenamer ?? fileSystem
         self.metadataService = metadataService
+        self.autoTaggingService = autoTaggingService
         self.folderAccess = folderAccess
         self.folderPicker = folderPicker
     }
@@ -83,11 +97,43 @@ final class LibrarySession {
     }
 
     var canSave: Bool {
-        isDirty && validationMessage == nil && !isSaving && !isLoadingTag
+        isDirty
+            && validationMessage == nil
+            && !isSaving
+            && !isLoadingTag
+            && !isShowingAutoTagSheet
     }
 
     var canRevert: Bool {
-        isDirty && !isSaving
+        isDirty && !isSaving && !isShowingAutoTagSheet
+    }
+
+    var canFindTags: Bool {
+        selectedFileURLs.count == 1
+            && draft != nil
+            && !isLoadingTag
+            && !isSaving
+            && !isShowingAutoTagSheet
+    }
+
+    var isAutoTagging: Bool {
+        autoTagPhase == .searching || autoTagPhase == .resolving
+    }
+
+    var canApplyAutoTagReview: Bool {
+        guard isShowingAutoTagSheet, autoTagPhase == .reviewing, !isSaving,
+              autoTagRequest?.fileURL == selectedFileURL,
+              let autoTagReview, let draft else { return false }
+        return autoTagReview.hasSelectedChanges(comparedTo: draft)
+    }
+
+    var canSearchMusicBrainz: Bool {
+        isShowingAutoTagSheet
+            && !isAutoTagging
+            && autoTagPhase != .reviewing
+            && !isSaving
+            && selectedFileURL != nil
+            && !autoTagSearchTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var selectedFileURL: URL? {
@@ -96,16 +142,16 @@ final class LibrarySession {
 
     var unsavedChangesMessage: String {
         if selectedFileURLs.count > 1 {
-            return "The selected \(selectedFileURLs.count) MP3 files have unsaved tag changes."
+            return "The selected \(selectedFileURLs.count) audio files have unsaved tag changes."
         }
 
         if hasUnsavedFilenameChange, hasUnsavedTagChanges {
-            return "The selected MP3 has unsaved file name and tag changes."
+            return "The selected audio file has unsaved file name and tag changes."
         }
         if hasUnsavedFilenameChange {
-            return "The selected MP3 has an unsaved file name change."
+            return "The selected audio file has an unsaved file name change."
         }
-        return "The selected MP3 has unsaved tag changes."
+        return "The selected audio file has unsaved tag changes."
     }
 
     var saveButtonTitle: String {
@@ -145,7 +191,7 @@ final class LibrarySession {
     func requestSelectEntries(_ urls: Set<URL>) {
         let selectedEntries = entries.filter { urls.contains($0.url) }
         let fileURLs = selectedEntries
-            .filter { $0.kind == .mp3 }
+            .filter(\.isAudioFile)
             .map(\.url)
 
         if !fileURLs.isEmpty {
@@ -294,7 +340,7 @@ final class LibrarySession {
                     applyPersistedTag(persistedTag, draftBeingSaved: draftBeingSaved)
                     presentedError = PresentedError(
                         title: "Tags Saved, File Not Renamed",
-                        message: "The ID3 tags were saved, but the file name wasn’t changed. \(error.localizedDescription)"
+                        message: "The tags were saved, but the file name wasn’t changed. \(error.localizedDescription)"
                     )
                 } else {
                     present(error, title: "Couldn’t Rename File")
@@ -445,6 +491,169 @@ final class LibrarySession {
     func removeArtwork() {
         draft?.artworkData = nil
         statusMessage = nil
+    }
+
+    func startAutoTagSearch() {
+        guard canFindTags,
+              let selectedFileURL,
+              let draft else { return }
+
+        resetAutoTagging(closeSheet: false)
+        let request = AutoTagSearchRequest(fileURL: selectedFileURL, currentDraft: draft)
+        let inference = FilenameTagInference()
+        let seed = inference.searchSeed(for: request)
+        autoTagSearchTitle = seed?.title ?? ""
+        autoTagSearchArtist = seed?.artist ?? ""
+        autoTagSearchAlbum = seed?.album ?? ""
+        autoTagRequest = request
+        autoTagCandidates = inference.candidate(for: request).map { [$0] } ?? []
+        autoTagPhase = autoTagCandidates.isEmpty ? .noResults : .choosing
+        isShowingAutoTagSheet = true
+    }
+
+    func retryAutoTagSearch() {
+        searchMusicBrainzTags()
+    }
+
+    func searchMusicBrainzTags() {
+        guard canSearchMusicBrainz,
+              let selectedFileURL,
+              let draft else { return }
+
+        autoTagTask?.cancel()
+        autoTagGeneration += 1
+        let title = autoTagSearchTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let artist = autoTagSearchArtist.trimmingCharacters(in: .whitespacesAndNewlines)
+        let album = autoTagSearchAlbum.trimmingCharacters(in: .whitespacesAndNewlines)
+        let request = AutoTagSearchRequest(
+            fileURL: selectedFileURL,
+            currentDraft: draft,
+            searchSeed: MusicBrainzSearchSeed(
+                title: title,
+                artist: artist.isEmpty ? nil : artist,
+                album: album.isEmpty ? nil : album
+            )
+        )
+        let capturedSelectionGeneration = selectionGeneration
+        let requestGeneration = autoTagGeneration
+        autoTagRequest = request
+        // Keep local suggestions usable while the network request is pending.
+        autoTagCandidates = FilenameTagInference().candidate(for: request).map { [$0] } ?? []
+        autoTagReview = nil
+        autoTagPhase = .searching
+        autoTagMessage = nil
+
+        autoTagTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let outcome = try await autoTaggingService.search(request)
+                guard autoTagRequestIsCurrent(
+                    request,
+                    selectionGeneration: capturedSelectionGeneration,
+                    requestGeneration: requestGeneration
+                ) else { return }
+
+                autoTagCandidates = outcome.candidates
+                autoTagMessage = outcome.warningMessage
+                autoTagPhase = outcome.candidates.isEmpty ? .noResults : .choosing
+                autoTagTask = nil
+            } catch is CancellationError {
+                // The user cancelled, dismissed the sheet, or changed selection.
+            } catch {
+                guard autoTagRequestIsCurrent(
+                    request,
+                    selectionGeneration: capturedSelectionGeneration,
+                    requestGeneration: requestGeneration
+                ) else { return }
+                autoTagMessage = error.localizedDescription
+                autoTagPhase = autoTagCandidates.isEmpty ? .noResults : .choosing
+                autoTagTask = nil
+            }
+        }
+    }
+
+    func resolveAutoTagCandidate(_ candidate: AutoTagCandidate) {
+        guard isShowingAutoTagSheet, !isSaving,
+              autoTagPhase == .choosing || autoTagPhase == .searching,
+              let request = autoTagRequest,
+              autoTagCandidates.contains(candidate),
+              selectedFileURL == request.fileURL else { return }
+
+        autoTagTask?.cancel()
+        autoTagGeneration += 1
+        let capturedSelectionGeneration = selectionGeneration
+        let requestGeneration = autoTagGeneration
+        autoTagPhase = .resolving
+        autoTagMessage = nil
+        autoTagReview = nil
+
+        autoTagTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let proposal = try await autoTaggingService.resolve(candidate, for: request)
+                guard autoTagRequestIsCurrent(
+                    request,
+                    selectionGeneration: capturedSelectionGeneration,
+                    requestGeneration: requestGeneration
+                ),
+                      let currentDraft = draft else { return }
+
+                autoTagReview = AutoTagReviewDraft(
+                    proposal: proposal,
+                    currentDraft: currentDraft
+                )
+                autoTagPhase = .reviewing
+                autoTagTask = nil
+            } catch is CancellationError {
+                // The user cancelled, dismissed the sheet, or changed selection.
+            } catch {
+                guard autoTagRequestIsCurrent(
+                    request,
+                    selectionGeneration: capturedSelectionGeneration,
+                    requestGeneration: requestGeneration
+                ) else { return }
+                autoTagMessage = error.localizedDescription
+                autoTagPhase = .choosing
+                autoTagTask = nil
+            }
+        }
+    }
+
+    func setAutoTagField(_ field: AutoTagField, isSelected: Bool) {
+        guard autoTagPhase == .reviewing, var review = autoTagReview else { return }
+        if isSelected {
+            review.selectedFields.insert(field)
+        } else {
+            review.selectedFields.remove(field)
+        }
+        autoTagReview = review
+    }
+
+    func returnToAutoTagCandidates() {
+        guard autoTagPhase == .reviewing, !autoTagCandidates.isEmpty else { return }
+        autoTagReview = nil
+        autoTagMessage = nil
+        autoTagPhase = .choosing
+    }
+
+    func applyAutoTagReview() {
+        guard canApplyAutoTagReview, let review = autoTagReview,
+              let currentDraft = draft else { return }
+        let updatedDraft = review.applying(to: currentDraft)
+        guard updatedDraft != currentDraft else { return }
+
+        draft = updatedDraft
+        statusMessage = nil
+        resetAutoTagging(closeSheet: true)
+    }
+
+    func cancelAutoTagging() {
+        resetAutoTagging(closeSheet: true)
+    }
+
+    func autoTagSheetDidDismiss() {
+        guard !isShowingAutoTagSheet else { return }
+        resetAutoTagging(closeSheet: false)
     }
 
     func saveAndContinuePendingNavigation() {
@@ -663,6 +872,7 @@ final class LibrarySession {
     }
 
     private func loadTags(_ urls: [URL]) {
+        resetAutoTagging(closeSheet: true)
         tagLoadTask?.cancel()
         selectionGeneration += 1
         let generation = selectionGeneration
@@ -722,6 +932,7 @@ final class LibrarySession {
     }
 
     private func clearSelectedTags() {
+        resetAutoTagging(closeSheet: true)
         tagLoadTask?.cancel()
         tagLoadTask = nil
         selectionGeneration += 1
@@ -743,6 +954,7 @@ final class LibrarySession {
     private func cancelOutstandingWork() {
         directoryLoadTask?.cancel()
         tagLoadTask?.cancel()
+        resetAutoTagging(closeSheet: true)
         selectionGeneration += 1
         folderLoadTasks.values.forEach { $0.cancel() }
         directoryLoadTask = nil
@@ -750,6 +962,35 @@ final class LibrarySession {
         folderLoadTasks = [:]
         isLoadingDirectory = false
         isLoadingTag = false
+    }
+
+    private func autoTagRequestIsCurrent(
+        _ request: AutoTagSearchRequest,
+        selectionGeneration: Int,
+        requestGeneration: Int
+    ) -> Bool {
+        !Task.isCancelled
+            && selectionGeneration == self.selectionGeneration
+            && requestGeneration == autoTagGeneration
+            && selectedFileURLs == [request.fileURL]
+            && autoTagRequest?.fileURL == request.fileURL
+    }
+
+    private func resetAutoTagging(closeSheet: Bool) {
+        autoTagGeneration += 1
+        autoTagTask?.cancel()
+        autoTagTask = nil
+        autoTagRequest = nil
+        autoTagCandidates = []
+        autoTagReview = nil
+        autoTagMessage = nil
+        autoTagPhase = .idle
+        autoTagSearchTitle = ""
+        autoTagSearchArtist = ""
+        autoTagSearchAlbum = ""
+        if closeSheet {
+            isShowingAutoTagSheet = false
+        }
     }
 }
 

@@ -100,6 +100,81 @@ final class FileSystemRenameTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: destination), originalData)
     }
 
+    func testM4ARenamePreservesOriginalExtensionCapitalizationAndAudioBytes() async throws {
+        let originalData = Data([0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70])
+        let fixture = try makeFixture(files: ["Original.M4A": originalData])
+        defer { try? FileManager.default.removeItem(at: fixture.folder) }
+
+        let source = fixture.folder.appendingPathComponent("Original.M4A")
+        var draft = FilenameDraft(url: source)
+        draft.stem = "Renamed.Track"
+        XCTAssertEqual(draft.proposedFilename, "Renamed.Track.M4A")
+
+        let service = FileSystemService()
+        let destination = try await service.validateRename(
+            from: source,
+            toFileName: draft.proposedFilename
+        )
+        try await service.rename(from: source, to: destination)
+
+        XCTAssertEqual(
+            try FileManager.default.contentsOfDirectory(atPath: fixture.folder.path),
+            ["Renamed.Track.M4A"]
+        )
+        XCTAssertEqual(try Data(contentsOf: destination), originalData)
+    }
+
+    func testRenameRejectsFormatConversionAndExtensionCaseChanges() async throws {
+        let originalData = Data([0x01, 0x02, 0x03])
+        let files = ["Original.mp3": originalData, "Original.M4A": originalData]
+        let fixture = try makeFixture(files: files)
+        defer { try? FileManager.default.removeItem(at: fixture.folder) }
+        let service = FileSystemService()
+
+        for (sourceName, destinationName) in [
+            ("Original.mp3", "Renamed.m4a"),
+            ("Original.M4A", "Renamed.mp3"),
+            ("Original.M4A", "Renamed.m4a"),
+            ("Original.mp3", "Renamed.MP3"),
+        ] {
+            let source = fixture.folder.appendingPathComponent(sourceName)
+            let destination = fixture.folder.appendingPathComponent(destinationName)
+            do {
+                try await service.rename(from: source, to: destination)
+                XCTFail("Expected \(sourceName) to \(destinationName) to be rejected")
+            } catch let error as FileRenameError {
+                XCTAssertEqual(error, .invalidFileName)
+            }
+            XCTAssertEqual(try Data(contentsOf: source), originalData)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+        }
+        XCTAssertEqual(
+            Set(try FileManager.default.contentsOfDirectory(atPath: fixture.folder.path)),
+            Set(files.keys)
+        )
+    }
+
+    func testM4ACollisionIsRefusedWithoutOverwritingEitherFile() async throws {
+        let sourceData = Data([0x01, 0x02])
+        let destinationData = Data([0xA0, 0xB0, 0xC0])
+        let fixture = try makeFixture(files: [
+            "Original.m4a": sourceData,
+            "Taken.m4a": destinationData,
+        ])
+        defer { try? FileManager.default.removeItem(at: fixture.folder) }
+
+        let source = fixture.folder.appendingPathComponent("Original.m4a")
+        let destination = fixture.folder.appendingPathComponent("Taken.m4a")
+        do {
+            try await FileSystemService().rename(from: source, to: destination)
+            XCTFail("Expected an M4A destination collision to be rejected")
+        } catch let error as FileRenameError {
+            XCTAssertEqual(error, .destinationExists("Taken.m4a"))
+        }
+        XCTAssertEqual(try Data(contentsOf: source), sourceData)
+        XCTAssertEqual(try Data(contentsOf: destination), destinationData)
+    }
+
     func testSymlinkSourceIsRejectedWithoutMovingItsTarget() async throws {
         let originalData = Data([0x49, 0x44, 0x33])
         let fixture = try makeFixture(files: ["Real.mp3": originalData])

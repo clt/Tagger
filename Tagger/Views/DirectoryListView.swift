@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DirectoryListView: View {
     @Bindable var session: LibrarySession
+    // Track tentative List selection so cancelled navigation can restore the highlight.
+    @State private var displayedSelection: Set<URL> = []
 
     var body: some View {
         List(selection: selection) {
@@ -21,21 +23,38 @@ struct DirectoryListView: View {
                     }
             }
         }
+        .disabled(session.isSaving)
+        .onAppear {
+            displayedSelection = session.selectedEntryURLs
+        }
+        .onChange(of: session.selectedEntryURLs) { _, selection in
+            displayedSelection = selection
+        }
+        .onChange(of: session.isShowingUnsavedChangesAlert) { _, isShowing in
+            if !isShowing {
+                displayedSelection = session.selectedEntryURLs
+            }
+        }
+        .onChange(of: displayedSelection) { _, _ in
+            if !session.isShowingUnsavedChangesAlert {
+                displayedSelection = session.selectedEntryURLs
+            }
+        }
         .overlay {
             if session.isLoadingDirectory {
                 ProgressView("Loading folder…")
                     .padding()
             } else if session.rootURL != nil, session.entries.isEmpty {
                 ContentUnavailableView(
-                    "No MP3 Files",
+                    "No Audio Files",
                     systemImage: "music.note",
-                    description: Text("This folder has no subfolders or MP3 files.")
+                    description: Text("This folder has no subfolders, MP3 files, or M4A files.")
                 )
             } else if session.rootURL == nil {
                 ContentUnavailableView(
                     "Choose a Folder",
                     systemImage: "folder",
-                    description: Text("Folders and MP3 files will appear here.")
+                    description: Text("Folders, MP3 files, and M4A files will appear here.")
                 )
             }
         }
@@ -44,8 +63,9 @@ struct DirectoryListView: View {
 
     private var selection: Binding<Set<URL>> {
         Binding(
-            get: { session.selectedEntryURLs },
+            get: { displayedSelection },
             set: { newValue in
+                displayedSelection = newValue
                 session.requestSelectEntries(newValue)
             }
         )

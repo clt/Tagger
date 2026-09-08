@@ -15,6 +15,12 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 430, ideal: 590)
         }
         .navigationSplitViewStyle(.balanced)
+        .sheet(
+            isPresented: $session.isShowingAutoTagSheet,
+            onDismiss: { session.autoTagSheetDidDismiss() }
+        ) {
+            AutoTagReviewView(session: session)
+        }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -23,7 +29,7 @@ struct ContentView: View {
                     Label("Open Folder", systemImage: "folder.badge.plus")
                 }
                 .disabled(session.isSaving)
-                .help("Choose a folder of MP3 files")
+                .help("Choose a folder of MP3 and M4A files")
 
                 Button {
                     session.revert()
@@ -74,8 +80,10 @@ struct ContentView: View {
             \.taggerCommandActions,
             TaggerCommandActions(
                 openFolder: { session.chooseFolder() },
+                findTags: { session.startAutoTagSearch() },
                 save: { Task { await session.save() } },
                 revert: { session.revert() },
+                canFindTags: session.canFindTags,
                 canSave: session.canSave,
                 canRevert: session.canRevert
             )

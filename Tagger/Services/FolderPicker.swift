@@ -5,8 +5,8 @@ import Foundation
 struct FolderPicker {
     func chooseFolder() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Choose a Folder of MP3 Files"
-        panel.message = "Tagger will show MP3 files in this folder and its subfolders."
+        panel.title = "Choose a Folder of Audio Files"
+        panel.message = "Tagger will show MP3 and M4A files in this folder and its subfolders."
         panel.prompt = "Open"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true

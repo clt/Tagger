@@ -16,14 +16,14 @@ struct TagEditorView: View {
                     ContentUnavailableView(
                         "Tags Unavailable",
                         systemImage: "exclamationmark.triangle",
-                        description: Text("Choose another MP3 or try opening this file again.")
+                        description: Text("Choose another audio file or try opening this file again.")
                     )
                 }
             } else {
                 ContentUnavailableView(
-                    "Select an MP3",
+                    "Select an Audio File",
                     systemImage: "tag",
-                    description: Text("Select a file to view and edit its ID3 tags.")
+                    description: Text("Select an MP3 or M4A file to view and edit its tags.")
                 )
             }
         }
@@ -32,17 +32,29 @@ struct TagEditorView: View {
 
     private func editor(for fileURL: URL) -> some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(session.filenameDraft?.proposedFilename ?? fileURL.lastPathComponent)
-                    .font(.title2.weight(.semibold))
-                    .lineLimit(1)
+            HStack(alignment: .center, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(session.filenameDraft?.proposedFilename ?? fileURL.lastPathComponent)
+                        .font(.title2.weight(.semibold))
+                        .lineLimit(1)
 
-                Text(fileURL.path)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .textSelection(.enabled)
+                    Text(fileURL.path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                }
+
+                Spacer()
+
+                Button {
+                    session.startAutoTagSearch()
+                } label: {
+                    Label("Find Tags…", systemImage: "wand.and.stars")
+                }
+                .disabled(!session.canFindTags)
+                .help("Find tag suggestions from the file name and MusicBrainz")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
@@ -57,11 +69,11 @@ struct TagEditorView: View {
                                 .labelsHidden()
                                 .accessibilityLabel("File name")
                                 .accessibilityHint(
-                                    "The \(session.filenameDraft?.extensionSuffix ?? ".mp3") extension is preserved."
+                                    "The \(session.filenameDraft?.extensionSuffix ?? ".\(fileURL.pathExtension)") extension is preserved."
                                 )
-                                .help("Edit the file name. The MP3 extension is preserved.")
+                                .help("Edit the file name. The original extension is preserved.")
 
-                            Text(session.filenameDraft?.extensionSuffix ?? ".mp3")
+                            Text(session.filenameDraft?.extensionSuffix ?? ".\(fileURL.pathExtension)")
                                 .foregroundStyle(.secondary)
                                 .accessibilityHidden(true)
                         }

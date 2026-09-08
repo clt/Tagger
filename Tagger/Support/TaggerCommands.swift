@@ -2,8 +2,10 @@ import SwiftUI
 
 struct TaggerCommandActions {
     let openFolder: @MainActor () -> Void
+    let findTags: @MainActor () -> Void
     let save: @MainActor () -> Void
     let revert: @MainActor () -> Void
+    let canFindTags: Bool
     let canSave: Bool
     let canRevert: Bool
 }
@@ -40,7 +42,15 @@ struct TaggerCommands: Commands {
             Button("Revert to Saved") {
                 actions?.revert()
             }
-            .disabled(actions?.canRevert != true)
+                .disabled(actions?.canRevert != true)
+        }
+
+        CommandMenu("Tags") {
+            Button("Find Tags…") {
+                actions?.findTags()
+            }
+            .keyboardShortcut("t", modifiers: [.command, .shift])
+            .disabled(actions?.canFindTags != true)
         }
     }
 }
