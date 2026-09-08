@@ -5,6 +5,125 @@ import XCTest
 
 final class LibrarySessionAutoTagTests: XCTestCase {
     @MainActor
+    func testArtworkOnlyProposalWritesOnlyOnExplicitSaveAndPreservesMP3Bytes() async throws {
+        for version: UInt8 in [3, 4] {
+            let fixture = try makeTaggedFixture(version: version)
+            defer { try? FileManager.default.removeItem(at: fixture.folder) }
+            let candidate = musicBrainzCandidate()
+            let autoTagger = AutoTagServiceStub(
+                outcome: AutoTagSearchOutcome(candidates: [candidate], warningMessage: nil),
+                proposal: AutoTagProposal(candidate: candidate, values: AutoTagValues(), artwork: artwork())
+            )
+            let session = LibrarySession(autoTaggingService: autoTagger)
+            session.requestSelectFile(fixture.file)
+            try await waitUntil { !session.isLoadingTag }
+            let originalDraft = session.draft
+            session.startAutoTagSearch()
+            session.searchMusicBrainzTags()
+            try await waitUntil { session.autoTagPhase == .choosing }
+            session.resolveAutoTagCandidate(candidate)
+            try await waitUntil { session.autoTagPhase == .reviewing }
+
+            XCTAssertEqual(session.draft, originalDraft)
+            XCTAssertTrue(session.autoTagReview?.selectedFields.isEmpty == true)
+            XCTAssertTrue(session.autoTagReview?.isArtworkSelected == true)
+            XCTAssertTrue(session.canApplyAutoTagReview)
+            XCTAssertEqual(try Data(contentsOf: fixture.file), fixture.originalBytes)
+            session.applyAutoTagReview()
+            XCTAssertEqual(session.draft?.artworkData, artwork().data)
+            XCTAssertEqual(session.originalDraft, originalDraft)
+            XCTAssertTrue(session.isDirty)
+            XCTAssertEqual(try Data(contentsOf: fixture.file), fixture.originalBytes)
+
+            let didSave = await session.save()
+            XCTAssertTrue(didSave, session.presentedError?.message ?? "Artwork save failed")
+            XCTAssertFalse(session.isDirty)
+            let reloaded = try await ID3MetadataService().load(from: fixture.file)
+            XCTAssertEqual(reloaded.draft.artworkData, artwork().data)
+            XCTAssertEqual(reloaded.draft.title, originalDraft?.title)
+            let bytes = try Data(contentsOf: fixture.file)
+            XCTAssertEqual(bytes[3], version)
+            XCTAssertEqual(bytes.suffix(fixture.audio.count), fixture.audio)
+            XCTAssertEqual(try unknownFramePayload(in: bytes, version: version), fixture.unknownPayload)
+        }
+    }
+
+    @MainActor
+    func testArtworkReplacementRequiresSelectionAndRevertPreservesOriginal() async throws {
+        let url = URL(fileURLWithPath: "/tmp/TaggerAutoTagTests/Original.mp3")
+        let original = ID3TagDraft(title: "Original Title", artworkData: Data([1, 2, 3]))
+        let metadata = AutoTagMetadataStub(tags: [url: loadedTag(url: url, draft: original)])
+        let candidate = musicBrainzCandidate()
+        let autoTagger = AutoTagServiceStub(
+            outcome: AutoTagSearchOutcome(candidates: [candidate], warningMessage: nil),
+            proposal: AutoTagProposal(candidate: candidate, values: AutoTagValues(), artwork: artwork())
+        )
+        let session = LibrarySession(metadataService: metadata, autoTaggingService: autoTagger)
+        session.requestSelectFile(url)
+        try await waitUntil { !session.isLoadingTag }
+        session.startAutoTagSearch()
+        session.searchMusicBrainzTags()
+        try await waitUntil { session.autoTagPhase == .choosing }
+        session.resolveAutoTagCandidate(candidate)
+        try await waitUntil { session.autoTagPhase == .reviewing }
+        XCTAssertFalse(session.autoTagReview?.isArtworkSelected == true)
+        XCTAssertFalse(session.canApplyAutoTagReview)
+        session.setAutoTagArtwork(isSelected: true)
+        XCTAssertTrue(session.canApplyAutoTagReview)
+        session.setAutoTagArtwork(isSelected: false)
+        XCTAssertFalse(session.canApplyAutoTagReview)
+        XCTAssertEqual(session.draft, original)
+        session.setAutoTagArtwork(isSelected: true)
+        session.applyAutoTagReview()
+        XCTAssertEqual(session.draft?.artworkData, artwork().data)
+        XCTAssertTrue(session.isDirty)
+        session.revert()
+        XCTAssertEqual(session.draft, original)
+        XCTAssertFalse(session.isDirty)
+        let saves = await metadata.savedDrafts()
+        XCTAssertTrue(saves.isEmpty)
+    }
+
+    @MainActor
+    func testLateArtworkAfterCancellationOrSelectionChangeIsIgnored() async throws {
+        for changeSelection in [false, true] {
+            let first = URL(fileURLWithPath: "/tmp/TaggerAutoTagTests/First.mp3")
+            let second = URL(fileURLWithPath: "/tmp/TaggerAutoTagTests/Second.mp3")
+            let metadata = AutoTagMetadataStub(tags: [
+                first: loadedTag(url: first, draft: ID3TagDraft()),
+                second: loadedTag(url: second, draft: ID3TagDraft()),
+            ])
+            let candidate = musicBrainzCandidate()
+            let autoTagger = ControlledAutoTagServiceStub()
+            let session = LibrarySession(metadataService: metadata, autoTaggingService: autoTagger)
+            session.requestSelectFile(first)
+            try await waitUntil { !session.isLoadingTag }
+            session.startAutoTagSearch()
+            session.searchMusicBrainzTags()
+            try await waitForService { await autoTagger.searchCount() == 1 }
+            await autoTagger.finishSearch(0, candidates: [candidate])
+            try await waitUntil { session.autoTagPhase == .choosing }
+            session.resolveAutoTagCandidate(candidate)
+            try await waitForService { await autoTagger.resolutionCount() == 1 }
+            if changeSelection {
+                session.requestSelectFile(second)
+                try await waitUntil { !session.isLoadingTag && session.selectedFileURL == second }
+            } else {
+                session.cancelAutoTagging()
+            }
+            await autoTagger.finishResolution(0, artwork: artwork())
+            try await waitForService { await autoTagger.returnedResolutionCount() == 1 }
+            try await Task.sleep(for: .milliseconds(20))
+            XCTAssertEqual(session.autoTagPhase, .idle)
+            XCTAssertNil(session.autoTagReview)
+            XCTAssertEqual(session.draft, ID3TagDraft())
+            XCTAssertFalse(session.isDirty)
+            let saves = await metadata.savedDrafts()
+            XCTAssertTrue(saves.isEmpty)
+        }
+    }
+
+    @MainActor
     func testApplyChangesOnlySelectedDraftFieldsAndPerformsNoIO() async throws {
         let url = URL(fileURLWithPath: "/tmp/TaggerAutoTagTests/01 - Portishead - Roads.mp3")
         let original = ID3TagDraft(
@@ -407,6 +526,124 @@ final class LibrarySessionAutoTagTests: XCTestCase {
     }
 
     @MainActor
+    func testAppleAlternativesRequireExplicitSearchSelectionAndSave() async throws {
+        let fixture = try makeTaggedFixture(version: 4)
+        defer { try? FileManager.default.removeItem(at: fixture.folder) }
+        let candidate = musicBrainzCandidate()
+        let service = ControlledAppleAutoTagStub(candidate: candidate)
+        let session = LibrarySession(autoTaggingService: service)
+        session.requestSelectFile(fixture.file)
+        try await waitUntil { !session.isLoadingTag }
+        session.startAutoTagSearch()
+        session.searchMusicBrainzTags()
+        try await waitUntil { session.autoTagPhase == .choosing }
+        session.resolveAutoTagCandidate(candidate)
+        try await waitUntil { session.autoTagPhase == .reviewing }
+        let initialCalls = await service.callCount()
+        XCTAssertEqual(initialCalls, 0)
+        XCTAssertTrue(session.canSearchAppleArtwork)
+        let original = session.draft
+        session.searchAppleArtwork()
+        try await waitForService { await service.callCount() == 1 }
+        XCTAssertFalse(session.canSearchAppleArtwork)
+        session.setAutoTagField(.album, isSelected: false)
+        let apple = AutoTagArtwork(data: artwork().data,
+            sourceURL: URL(string: "https://music.apple.com/us/album/dummy/123")!,
+            provider: .appleCatalog, pixelWidth: 1, pixelHeight: 1, title: "Dummy (Deluxe)")
+        await service.finish(.success(ArtworkSearchOutcome(artworks: [apple], warningMessage: nil)))
+        try await waitUntil { !session.isSearchingArtwork }
+        XCTAssertNil(session.autoTagReview?.selectedArtwork)
+        XCTAssertFalse(session.autoTagReview?.selectedFields.contains(.album) == true)
+        XCTAssertEqual(session.draft, original)
+        session.selectAutoTagArtwork(apple.id)
+        XCTAssertFalse(session.autoTagReview?.isArtworkSelected == true)
+        session.setAutoTagArtwork(isSelected: true)
+        XCTAssertEqual(try Data(contentsOf: fixture.file), fixture.originalBytes)
+        session.applyAutoTagReview()
+        XCTAssertEqual(session.draft?.artworkData, apple.data)
+        XCTAssertEqual(session.draft?.album, original?.album)
+        XCTAssertEqual(try Data(contentsOf: fixture.file), fixture.originalBytes)
+        XCTAssertTrue(session.isDirty)
+        let saved = await session.save()
+        XCTAssertTrue(saved)
+        let loaded = try await ID3MetadataService().load(from: fixture.file)
+        XCTAssertEqual(loaded.draft.artworkData, apple.data)
+        let bytes = try Data(contentsOf: fixture.file)
+        XCTAssertEqual(bytes.suffix(fixture.audio.count), fixture.audio)
+        XCTAssertEqual(try unknownFramePayload(in: bytes, version: 4), fixture.unknownPayload)
+    }
+
+    @MainActor
+    func testLeavingReviewIgnoresLateAppleResults() async throws {
+        for action in ["cancel", "back", "apply", "selection"] {
+            let first = URL(fileURLWithPath: "/tmp/TaggerAutoTagTests/First.mp3")
+            let second = URL(fileURLWithPath: "/tmp/TaggerAutoTagTests/Second.mp3")
+            let metadata = AutoTagMetadataStub(tags: [
+                first: loadedTag(url: first, draft: ID3TagDraft()),
+                second: loadedTag(url: second, draft: ID3TagDraft()),
+            ])
+            let candidate = musicBrainzCandidate()
+            let service = ControlledAppleAutoTagStub(candidate: candidate)
+            let session = LibrarySession(metadataService: metadata, autoTaggingService: service)
+            session.requestSelectFile(first)
+            try await waitUntil { !session.isLoadingTag }
+            session.startAutoTagSearch()
+            session.searchMusicBrainzTags()
+            try await waitUntil { session.autoTagPhase == .choosing }
+            session.resolveAutoTagCandidate(candidate)
+            try await waitUntil { session.autoTagPhase == .reviewing }
+            session.searchAppleArtwork()
+            try await waitForService { await service.callCount() == 1 }
+            switch action {
+            case "back": session.returnToAutoTagCandidates()
+            case "apply": session.applyAutoTagReview()
+            case "selection":
+                session.requestSelectFile(second)
+                try await waitUntil { !session.isLoadingTag }
+            default: session.cancelAutoTagging()
+            }
+            let draftBeforeReturn = session.draft
+            await service.finish(.success(ArtworkSearchOutcome(artworks: [artwork()], warningMessage: nil)))
+            try await waitForService { await service.returnCount() == 1 }
+            try await Task.sleep(for: .milliseconds(20))
+            XCTAssertNil(session.autoTagReview, action)
+            XCTAssertFalse(session.isSearchingArtwork, action)
+            XCTAssertEqual(session.draft, draftBeforeReturn, action)
+            let saves = await metadata.savedDrafts()
+            XCTAssertTrue(saves.isEmpty, action)
+        }
+    }
+
+    @MainActor
+    func testAppleFailurePreservesReviewAndAllowsRetry() async throws {
+        let url = URL(fileURLWithPath: "/tmp/TaggerAutoTagTests/Original.mp3")
+        let original = ID3TagDraft(artworkData: Data([1]))
+        let metadata = AutoTagMetadataStub(tags: [url: loadedTag(url: url, draft: original)])
+        let candidate = musicBrainzCandidate()
+        let service = ControlledAppleAutoTagStub(candidate: candidate)
+        let session = LibrarySession(metadataService: metadata, autoTaggingService: service)
+        session.requestSelectFile(url)
+        try await waitUntil { !session.isLoadingTag }
+        session.startAutoTagSearch()
+        session.searchMusicBrainzTags()
+        try await waitUntil { session.autoTagPhase == .choosing }
+        session.resolveAutoTagCandidate(candidate)
+        try await waitUntil { session.autoTagPhase == .reviewing }
+        let review = session.autoTagReview
+        session.searchAppleArtwork()
+        try await waitForService { await service.callCount() == 1 }
+        await service.finish(.failure(URLError(.timedOut)))
+        try await waitUntil { !session.isSearchingArtwork }
+        XCTAssertEqual(session.autoTagReview, review)
+        XCTAssertNotNil(session.autoTagArtworkMessage)
+        XCTAssertTrue(session.canSearchAppleArtwork)
+        XCTAssertEqual(session.draft, original)
+        session.cancelAutoTagging()
+        let saves = await metadata.savedDrafts()
+        XCTAssertTrue(saves.isEmpty)
+    }
+
+    @MainActor
     private func waitUntil(
         timeoutIterations: Int = 200,
         condition: @escaping @MainActor () -> Bool
@@ -548,6 +785,15 @@ final class LibrarySessionAutoTagTests: XCTestCase {
         )
     }
 
+    private func artwork() -> AutoTagArtwork {
+        AutoTagArtwork(
+            data: Data(base64Encoded:
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+            )!,
+            sourceURL: URL(string: "https://coverartarchive.org/release/f4cf6b7b-5d14-4f30-8a83-50a70591198f/front-1200")!
+        )
+    }
+
     private func loadedTag(url: URL, draft: ID3TagDraft) -> LoadedID3Tag {
         LoadedID3Tag(
             url: url,
@@ -624,10 +870,10 @@ private actor ControlledAutoTagServiceStub: AutoTaggingServicing {
         ))
     }
 
-    func finishResolution(_ index: Int) {
+    func finishResolution(_ index: Int, artwork: AutoTagArtwork? = nil) {
         let candidate = resolutions[index]
         proposals.removeValue(forKey: index)?.resume(returning: AutoTagProposal(
-            candidate: candidate, values: candidate.preview
+            candidate: candidate, values: candidate.preview, artwork: artwork
         ))
     }
 }
@@ -654,5 +900,32 @@ private actor AutoTagMetadataStub: ID3MetadataServicing {
 
     func savedDrafts() -> [ID3TagDraft] {
         saves
+    }
+}
+
+// Ignores cancellation deliberately to verify that a late provider cannot alter another review.
+private actor ControlledAppleAutoTagStub: AutoTaggingServicing {
+    let candidate: AutoTagCandidate
+    private var continuation: CheckedContinuation<ArtworkSearchOutcome, any Error>?
+    private var calls = 0
+    private var returned = 0
+    init(candidate: AutoTagCandidate) { self.candidate = candidate }
+    func search(_ request: AutoTagSearchRequest) async throws -> AutoTagSearchOutcome {
+        AutoTagSearchOutcome(candidates: [candidate], warningMessage: nil)
+    }
+    func resolve(_ candidate: AutoTagCandidate, for request: AutoTagSearchRequest) async throws -> AutoTagProposal {
+        AutoTagProposal(candidate: candidate, values: candidate.preview)
+    }
+    func searchAppleArtwork(artist: String, album: String) async throws -> ArtworkSearchOutcome {
+        calls += 1
+        let outcome = try await withCheckedThrowingContinuation { continuation = $0 }
+        returned += 1
+        return outcome
+    }
+    func callCount() -> Int { calls }
+    func returnCount() -> Int { returned }
+    func finish(_ result: Result<ArtworkSearchOutcome, any Error>) {
+        continuation?.resume(with: result)
+        continuation = nil
     }
 }

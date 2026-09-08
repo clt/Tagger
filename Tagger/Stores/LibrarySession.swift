@@ -35,6 +35,8 @@ final class LibrarySession {
     var autoTagCandidates: [AutoTagCandidate] = []
     var autoTagReview: AutoTagReviewDraft?
     var autoTagMessage: String?
+    var isSearchingArtwork = false
+    var autoTagArtworkMessage: String?
     var autoTagSearchTitle = ""
     var autoTagSearchArtist = ""
     var autoTagSearchAlbum = ""
@@ -134,6 +136,24 @@ final class LibrarySession {
             && !isSaving
             && selectedFileURL != nil
             && !autoTagSearchTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var canSearchAppleArtwork: Bool {
+        isShowingAutoTagSheet && autoTagPhase == .reviewing && !isSaving
+            && !isSearchingArtwork && autoTagRequest?.fileURL == selectedFileURL
+            && artworkSearchTerms != nil
+    }
+
+    private var artworkSearchTerms: (artist: String, album: String)? {
+        guard let values = autoTagReview?.proposal.values else { return nil }
+        func firstNonempty(_ values: String?...) -> String? {
+            values.compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .first { !$0.isEmpty }
+        }
+        guard let artist = firstNonempty(values.albumArtist, values.artist, draft?.albumArtist,
+                                         draft?.artist, autoTagSearchArtist),
+              let album = firstNonempty(values.album, draft?.album, autoTagSearchAlbum) else { return nil }
+        return (artist, album)
     }
 
     var selectedFileURL: URL? {
@@ -629,8 +649,65 @@ final class LibrarySession {
         autoTagReview = review
     }
 
+    func setAutoTagArtwork(isSelected: Bool) {
+        guard autoTagPhase == .reviewing, var review = autoTagReview else { return }
+        review.isArtworkSelected = isSelected
+        autoTagReview = review
+    }
+
+    func selectAutoTagArtwork(_ id: String) {
+        guard autoTagPhase == .reviewing, var review = autoTagReview,
+              review.availableArtwork.contains(where: { $0.id == id }) else { return }
+        review.selectedArtworkID = id
+        autoTagReview = review
+    }
+
+    func searchAppleArtwork() {
+        guard canSearchAppleArtwork, let terms = artworkSearchTerms,
+              let request = autoTagRequest, let candidateID = autoTagReview?.proposal.candidate.id else { return }
+        autoTagTask?.cancel()
+        autoTagGeneration += 1
+        let capturedSelectionGeneration = selectionGeneration
+        let requestGeneration = autoTagGeneration
+        isSearchingArtwork = true
+        autoTagArtworkMessage = nil
+        autoTagTask = Task { [weak self] in
+            guard let self else { return }
+            defer {
+                if requestGeneration == autoTagGeneration {
+                    isSearchingArtwork = false
+                    autoTagTask = nil
+                }
+            }
+            do {
+                let outcome = try await autoTaggingService.searchAppleArtwork(artist: terms.artist, album: terms.album)
+                guard autoTagRequestIsCurrent(request, selectionGeneration: capturedSelectionGeneration,
+                                              requestGeneration: requestGeneration),
+                      autoTagPhase == .reviewing, var review = autoTagReview,
+                      review.proposal.candidate.id == candidateID else { return }
+                // Preserve field choices and cover selection made while the request was pending.
+                var seen = Set(review.availableArtwork.map(\.id))
+                review.proposal.artworkAlternatives += outcome.artworks.filter { seen.insert($0.id).inserted }
+                autoTagReview = review
+                autoTagArtworkMessage = outcome.warningMessage
+                    ?? (outcome.artworks.isEmpty ? "No matching Apple Music covers were found." : nil)
+            } catch is CancellationError {
+                // Cancelling or leaving review invalidates the request without changing the draft.
+            } catch {
+                guard autoTagRequestIsCurrent(request, selectionGeneration: capturedSelectionGeneration,
+                                              requestGeneration: requestGeneration) else { return }
+                autoTagArtworkMessage = "Apple Music covers couldn’t be loaded. \(error.localizedDescription)"
+            }
+        }
+    }
+
     func returnToAutoTagCandidates() {
         guard autoTagPhase == .reviewing, !autoTagCandidates.isEmpty else { return }
+        autoTagGeneration += 1
+        autoTagTask?.cancel()
+        autoTagTask = nil
+        isSearchingArtwork = false
+        autoTagArtworkMessage = nil
         autoTagReview = nil
         autoTagMessage = nil
         autoTagPhase = .choosing
@@ -984,6 +1061,8 @@ final class LibrarySession {
         autoTagCandidates = []
         autoTagReview = nil
         autoTagMessage = nil
+        isSearchingArtwork = false
+        autoTagArtworkMessage = nil
         autoTagPhase = .idle
         autoTagSearchTitle = ""
         autoTagSearchArtist = ""

@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct AutoTagReviewView: View {
@@ -23,7 +24,7 @@ struct AutoTagReviewView: View {
                 .foregroundStyle(.tint)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Find Tags")
+                Text("Find Tags and Artwork")
                     .font(.title2.weight(.semibold))
                 Text(session.selectedFileURL?.lastPathComponent ?? "Selected Audio File")
                     .font(.caption)
@@ -42,7 +43,7 @@ struct AutoTagReviewView: View {
         case .searching, .choosing, .noResults:
             searchAndCandidates
         case .resolving:
-            progressView("Loading release details…")
+            progressView("Loading release details and artwork…")
         case .reviewing:
             reviewList
         case .idle:
@@ -103,7 +104,7 @@ struct AutoTagReviewView: View {
             }
 
             HStack(alignment: .center, spacing: 16) {
-                Text("Searching sends the title, artist, and album above to MusicBrainz. Your audio and full file path stay on this Mac.")
+                Text("Searching sends the title, artist, and album above to MusicBrainz. Choosing a MusicBrainz result also requests its artwork from Cover Art Archive and Internet Archive. Your audio and full file path stay on this Mac.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -116,6 +117,10 @@ struct AutoTagReviewView: View {
                 .disabled(!session.canSearchMusicBrainz || session.isAutoTagging)
                 .help("Search online using the title, artist, and album above")
             }
+
+            Text("File name suggestions stay offline.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding()
     }
@@ -183,7 +188,9 @@ struct AutoTagReviewView: View {
                     .padding(.vertical, 4)
                 }
                 .buttonStyle(.plain)
-                .accessibilityHint("Review this candidate before applying any fields")
+                .accessibilityHint(candidate.source == .musicBrainz
+                    ? "Load release details and artwork for review before applying to the draft"
+                    : "Review this file name suggestion offline")
             }
             .overlay {
                 if session.autoTagCandidates.isEmpty {
@@ -220,14 +227,25 @@ struct AutoTagReviewView: View {
                 }
                 .padding()
 
-                if rows.isEmpty {
-                    ContentUnavailableView(
-                        "Tags Already Match",
-                        systemImage: "checkmark.circle",
-                        description: Text("This candidate does not change any supported fields.")
-                    )
-                } else {
-                    List(rows) { row in
+                if let message = review.proposal.artworkMessage {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.bottom, 10)
+                }
+
+                List {
+                    artworkReviewRow(review, currentData: currentDraft.artworkData)
+
+                    if rows.isEmpty && !review.hasArtworkChange(comparedTo: currentDraft) {
+                        Label("Tags already match. You can still choose another cover.", systemImage: "checkmark.circle")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    ForEach(rows) { row in
                         Toggle(
                             isOn: Binding(
                                 get: {
@@ -267,10 +285,155 @@ struct AutoTagReviewView: View {
         }
     }
 
+    private func artworkReviewRow(_ review: AutoTagReviewDraft, currentData: Data?) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Toggle("Artwork", isOn: Binding(
+                    get: { session.autoTagReview?.isArtworkSelected == true },
+                    set: { session.setAutoTagArtwork(isSelected: $0) }
+                ))
+                .toggleStyle(.checkbox)
+                .font(.body.weight(.medium))
+                .disabled(review.selectedArtwork == nil)
+                .accessibilityLabel(currentData == nil ? "Add selected artwork to draft" : "Replace current artwork in draft")
+
+                Spacer()
+                Button("Find Apple Music Covers") {
+                    session.searchAppleArtwork()
+                }
+                .disabled(!session.canSearchAppleArtwork || session.isSearchingArtwork)
+                .help("Search the Apple Music US catalog using this album and artist")
+            }
+
+            Text("Find Apple Music Covers sends the album and artist to Apple’s US catalog. Cover Art Archive artwork is fetched when you choose a MusicBrainz result.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if session.isSearchingArtwork {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Finding Apple Music covers…")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            if let message = session.autoTagArtworkMessage {
+                Label(message, systemImage: "info.circle")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if !review.availableArtwork.isEmpty {
+                Picker("Cover", selection: Binding<String?>(
+                    get: { session.autoTagReview?.selectedArtworkID },
+                    set: { id in
+                        if let id { session.selectAutoTagArtwork(id) }
+                    }
+                )) {
+                    if review.selectedArtwork == nil {
+                        Text("Choose a cover…").tag(nil as String?)
+                    }
+                    ForEach(review.availableArtwork) { artwork in
+                        Text(artworkOptionLabel(artwork)).tag(Optional(artwork.id))
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityLabel("Suggested cover source and edition")
+            }
+
+            if currentData != nil || review.selectedArtwork != nil {
+                HStack(alignment: .top, spacing: 16) {
+                    artworkPreview(currentData, label: "Current artwork")
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 50)
+                        .accessibilityHidden(true)
+                    artworkPreview(review.selectedArtwork?.data, label: "Selected artwork", artwork: review.selectedArtwork)
+                    Spacer(minLength: 0)
+                }
+            }
+
+            if let artwork = review.selectedArtwork {
+                Link("Artwork from \(artwork.provider.displayName)", destination: artwork.sourceURL)
+                    .font(.caption)
+                if let subtitle = artwork.subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if currentData != nil {
+                    Text("Select Artwork to replace the image in your draft.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text(review.availableArtwork.isEmpty
+                    ? "No cover selected. Search Apple Music for an alternative."
+                    : "Choose a cover, then select Artwork to add it to your draft.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    private func artworkOptionLabel(_ artwork: AutoTagArtwork) -> String {
+        [artwork.provider.displayName, artwork.title, artwork.subtitle]
+            .compactMap { $0 }
+            .joined(separator: " · ")
+    }
+
+    private func artworkPreview(_ data: Data?, label: String, artwork: AutoTagArtwork? = nil) -> some View {
+        VStack(spacing: 5) {
+            Group {
+                if let data, let image = NSImage(data: data) {
+                    Image(nsImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .accessibilityLabel(label)
+                } else {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(.quaternary)
+                        .overlay {
+                            Text(data == nil ? "Not set" : "Preview unavailable")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .accessibilityLabel("\(label): \(data == nil ? "not set" : "preview unavailable")")
+                }
+            }
+            .frame(width: 110, height: 110)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if let size = artworkDimensions(data, artwork: artwork) {
+                Text(size)
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            if let artwork {
+                Text(artwork.provider == .appleCatalog ? "Catalog image" : (artwork.isOriginal ? "Original image" : "Thumbnail"))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func artworkDimensions(_ data: Data?, artwork: AutoTagArtwork?) -> String? {
+        if let width = artwork?.pixelWidth, let height = artwork?.pixelHeight {
+            return "\(width) × \(height) px"
+        }
+        guard let data, let image = NSBitmapImageRep(data: data) else { return nil }
+        return "\(image.pixelsWide) × \(image.pixelsHigh) px"
+    }
+
     private var footer: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                Text("Nothing is written until you click Save.")
+                Text("Apply to Draft updates tags and artwork in the editor. Save writes them to the file.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Link(
