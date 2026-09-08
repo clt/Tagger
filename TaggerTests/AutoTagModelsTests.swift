@@ -84,7 +84,84 @@ final class AutoTagModelsTests: XCTestCase {
         XCTAssertEqual(applied.album, "Dummy")
     }
 
-    private func proposal(values: AutoTagValues) -> AutoTagProposal {
+    func testArtworkOnlySuggestionIsSelectedForAnEmptyDraft() {
+        let current = ID3TagDraft()
+        let proposal = proposal(values: AutoTagValues(), artwork: Data([1, 2, 3]))
+        let review = AutoTagReviewDraft(proposal: proposal, currentDraft: current)
+
+        XCTAssertTrue(review.rows(comparedTo: current).isEmpty)
+        XCTAssertTrue(review.isArtworkSelected)
+        XCTAssertTrue(review.hasArtworkChange(comparedTo: current))
+        XCTAssertTrue(review.hasSelectedChanges(comparedTo: current))
+        XCTAssertEqual(review.applying(to: current).artworkData, Data([1, 2, 3]))
+        XCTAssertNil(current.artworkData)
+    }
+
+    func testArtworkReplacementRequiresOptInAndPreservesOtherFields() {
+        let current = ID3TagDraft(
+            title: "Keep title",
+            genre: "Keep genre",
+            composer: "Keep composer",
+            comment: "Keep comment",
+            lyrics: "Keep lyrics",
+            artworkData: Data([1])
+        )
+        let proposal = proposal(values: AutoTagValues(), artwork: Data([2]))
+        var review = AutoTagReviewDraft(proposal: proposal, currentDraft: current)
+
+        XCTAssertFalse(review.isArtworkSelected)
+        XCTAssertTrue(review.hasArtworkChange(comparedTo: current))
+        XCTAssertFalse(review.hasSelectedChanges(comparedTo: current))
+        XCTAssertEqual(review.applying(to: current), current)
+
+        review.isArtworkSelected = true
+        var expected = current
+        expected.artworkData = Data([2])
+        XCTAssertEqual(review.applying(to: current), expected)
+        XCTAssertTrue(review.hasSelectedChanges(comparedTo: current))
+    }
+
+    func testUncheckingArtworkKeepsTextChangesAndLeavesArtworkUntouched() {
+        let current = ID3TagDraft()
+        let proposal = proposal(values: AutoTagValues(title: "New title"), artwork: Data([2]))
+        var review = AutoTagReviewDraft(proposal: proposal, currentDraft: current)
+        XCTAssertTrue(review.isArtworkSelected)
+
+        review.isArtworkSelected = false
+
+        XCTAssertEqual(review.applying(to: current), ID3TagDraft(title: "New title"))
+        XCTAssertTrue(review.hasSelectedChanges(comparedTo: current))
+    }
+
+    func testMissingArtworkNeverRemovesAnExistingImage() {
+        let current = ID3TagDraft(artworkData: Data([1]))
+        var review = AutoTagReviewDraft(
+            proposal: proposal(values: AutoTagValues()),
+            currentDraft: current
+        )
+        XCTAssertFalse(review.isArtworkSelected)
+        XCTAssertFalse(review.hasArtworkChange(comparedTo: current))
+        review.isArtworkSelected = true
+
+        XCTAssertEqual(review.applying(to: current), current)
+        XCTAssertFalse(review.hasSelectedChanges(comparedTo: current))
+    }
+
+    func testIdenticalArtworkDoesNotCreateAChange() {
+        let current = ID3TagDraft(artworkData: Data([1]))
+        var review = AutoTagReviewDraft(
+            proposal: proposal(values: AutoTagValues(), artwork: Data([1])),
+            currentDraft: current
+        )
+
+        XCTAssertFalse(review.isArtworkSelected)
+        XCTAssertFalse(review.hasArtworkChange(comparedTo: current))
+        review.isArtworkSelected = true
+        XCTAssertFalse(review.hasSelectedChanges(comparedTo: current))
+        XCTAssertEqual(review.applying(to: current), current)
+    }
+
+    private func proposal(values: AutoTagValues, artwork: Data? = nil) -> AutoTagProposal {
         let candidate = AutoTagCandidate(
             id: "test",
             source: .musicBrainz,
@@ -94,6 +171,12 @@ final class AutoTagModelsTests: XCTestCase {
             reference: .musicBrainz(recordingID: "recording", releaseID: "release"),
             preview: values
         )
-        return AutoTagProposal(candidate: candidate, values: values)
+        return AutoTagProposal(
+            candidate: candidate,
+            values: values,
+            artwork: artwork.map {
+                AutoTagArtwork(data: $0, sourceURL: URL(string: "https://coverartarchive.org/release/test")!)
+            }
+        )
     }
 }

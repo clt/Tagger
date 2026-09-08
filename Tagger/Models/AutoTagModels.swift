@@ -46,9 +46,16 @@ struct AutoTagCandidate: Identifiable, Equatable, Sendable {
     let preview: AutoTagValues
 }
 
+struct AutoTagArtwork: Equatable, Sendable {
+    let data: Data
+    let sourceURL: URL
+}
+
 struct AutoTagProposal: Equatable, Sendable {
     let candidate: AutoTagCandidate
     let values: AutoTagValues
+    var artwork: AutoTagArtwork? = nil
+    var artworkMessage: String? = nil
 }
 
 struct AutoTagValues: Equatable, Sendable {
@@ -160,6 +167,7 @@ struct AutoTagReviewRow: Identifiable, Equatable, Sendable {
 struct AutoTagReviewDraft: Equatable, Sendable {
     let proposal: AutoTagProposal
     var selectedFields: Set<AutoTagField>
+    var isArtworkSelected: Bool
 
     init(proposal: AutoTagProposal, currentDraft: ID3TagDraft) {
         self.proposal = proposal
@@ -168,10 +176,16 @@ struct AutoTagReviewDraft: Equatable, Sendable {
                 .filter { $0.currentValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
                 .map(\.field)
         )
+        isArtworkSelected = currentDraft.artworkData == nil && proposal.artwork != nil
     }
 
     func rows(comparedTo currentDraft: ID3TagDraft) -> [AutoTagReviewRow] {
         Self.rows(for: proposal, comparedTo: currentDraft)
+    }
+
+    func hasArtworkChange(comparedTo currentDraft: ID3TagDraft) -> Bool {
+        guard let artwork = proposal.artwork else { return false }
+        return artwork.data != currentDraft.artworkData
     }
 
     func applying(to currentDraft: ID3TagDraft) -> ID3TagDraft {
@@ -181,6 +195,9 @@ struct AutoTagReviewDraft: Equatable, Sendable {
                 .trimmingCharacters(in: .whitespacesAndNewlines),
                   !suggestion.isEmpty else { continue }
             field.set(suggestion, in: &updated)
+        }
+        if isArtworkSelected, let artwork = proposal.artwork {
+            updated.artworkData = artwork.data
         }
         return updated
     }

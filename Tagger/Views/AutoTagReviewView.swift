@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct AutoTagReviewView: View {
@@ -23,7 +24,7 @@ struct AutoTagReviewView: View {
                 .foregroundStyle(.tint)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Find Tags")
+                Text("Find Tags and Artwork")
                     .font(.title2.weight(.semibold))
                 Text(session.selectedFileURL?.lastPathComponent ?? "Selected Audio File")
                     .font(.caption)
@@ -42,7 +43,7 @@ struct AutoTagReviewView: View {
         case .searching, .choosing, .noResults:
             searchAndCandidates
         case .resolving:
-            progressView("Loading release details…")
+            progressView("Loading release details and artwork…")
         case .reviewing:
             reviewList
         case .idle:
@@ -103,7 +104,7 @@ struct AutoTagReviewView: View {
             }
 
             HStack(alignment: .center, spacing: 16) {
-                Text("Searching sends the title, artist, and album above to MusicBrainz. Your audio and full file path stay on this Mac.")
+                Text("Searching sends the title, artist, and album above to MusicBrainz. Choosing a MusicBrainz result also requests its artwork from Cover Art Archive and Internet Archive. Your audio and full file path stay on this Mac.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -116,6 +117,10 @@ struct AutoTagReviewView: View {
                 .disabled(!session.canSearchMusicBrainz || session.isAutoTagging)
                 .help("Search online using the title, artist, and album above")
             }
+
+            Text("File name suggestions stay offline.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding()
     }
@@ -183,7 +188,9 @@ struct AutoTagReviewView: View {
                     .padding(.vertical, 4)
                 }
                 .buttonStyle(.plain)
-                .accessibilityHint("Review this candidate before applying any fields")
+                .accessibilityHint(candidate.source == .musicBrainz
+                    ? "Load release details and artwork for review before applying to the draft"
+                    : "Review this file name suggestion offline")
             }
             .overlay {
                 if session.autoTagCandidates.isEmpty {
@@ -220,45 +227,61 @@ struct AutoTagReviewView: View {
                 }
                 .padding()
 
-                if rows.isEmpty {
+                if let message = review.proposal.artworkMessage {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.bottom, 10)
+                }
+
+                if rows.isEmpty && !review.hasArtworkChange(comparedTo: currentDraft) {
                     ContentUnavailableView(
                         "Tags Already Match",
                         systemImage: "checkmark.circle",
-                        description: Text("This candidate does not change any supported fields.")
+                        description: Text("This candidate does not change the supported tags or artwork.")
                     )
                 } else {
-                    List(rows) { row in
-                        Toggle(
-                            isOn: Binding(
-                                get: {
-                                    session.autoTagReview?.selectedFields.contains(row.field) == true
-                                },
-                                set: { isSelected in
-                                    session.setAutoTagField(row.field, isSelected: isSelected)
-                                }
-                            )
-                        ) {
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(row.field.displayName)
-                                    .font(.body.weight(.medium))
-                                HStack(spacing: 8) {
-                                    Text(displayValue(row.currentValue))
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(2)
-                                        .help(displayValue(row.currentValue))
-                                    Image(systemName: "arrow.right")
-                                        .font(.caption)
-                                        .foregroundStyle(.tertiary)
-                                    Text(row.suggestedValue)
-                                        .lineLimit(2)
-                                        .help(row.suggestedValue)
-                                }
-                                .font(.callout)
-                            }
+                    List {
+                        if review.hasArtworkChange(comparedTo: currentDraft),
+                           let artwork = review.proposal.artwork {
+                            artworkReviewRow(artwork, currentData: currentDraft.artworkData)
                         }
-                        .toggleStyle(.checkbox)
-                        .accessibilityLabel("\(row.field.displayName). Current: \(displayValue(row.currentValue)). Suggested: \(row.suggestedValue)")
-                        .padding(.vertical, 3)
+
+                        ForEach(rows) { row in
+                            Toggle(
+                                isOn: Binding(
+                                    get: {
+                                        session.autoTagReview?.selectedFields.contains(row.field) == true
+                                    },
+                                    set: { isSelected in
+                                        session.setAutoTagField(row.field, isSelected: isSelected)
+                                    }
+                                )
+                            ) {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(row.field.displayName)
+                                        .font(.body.weight(.medium))
+                                    HStack(spacing: 8) {
+                                        Text(displayValue(row.currentValue))
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(2)
+                                            .help(displayValue(row.currentValue))
+                                        Image(systemName: "arrow.right")
+                                            .font(.caption)
+                                            .foregroundStyle(.tertiary)
+                                        Text(row.suggestedValue)
+                                            .lineLimit(2)
+                                            .help(row.suggestedValue)
+                                    }
+                                    .font(.callout)
+                                }
+                            }
+                            .toggleStyle(.checkbox)
+                            .accessibilityLabel("\(row.field.displayName). Current: \(displayValue(row.currentValue)). Suggested: \(row.suggestedValue)")
+                            .padding(.vertical, 3)
+                        }
                     }
                 }
             }
@@ -267,10 +290,67 @@ struct AutoTagReviewView: View {
         }
     }
 
+    private func artworkReviewRow(_ artwork: AutoTagArtwork, currentData: Data?) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle("Artwork", isOn: Binding(
+                get: { session.autoTagReview?.isArtworkSelected == true },
+                set: { session.setAutoTagArtwork(isSelected: $0) }
+            ))
+            .toggleStyle(.checkbox)
+            .font(.body.weight(.medium))
+            .accessibilityLabel(currentData == nil ? "Add suggested artwork to draft" : "Replace current artwork in draft")
+
+            HStack(alignment: .center, spacing: 16) {
+                artworkPreview(currentData, label: "Current artwork")
+                Image(systemName: "arrow.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+                artworkPreview(artwork.data, label: "Suggested artwork")
+                Spacer(minLength: 0)
+            }
+
+            Link("Artwork from Cover Art Archive", destination: artwork.sourceURL)
+                .font(.caption)
+            if currentData != nil {
+                Text("Select Artwork to replace the image in your draft.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    private func artworkPreview(_ data: Data?, label: String) -> some View {
+        VStack(spacing: 5) {
+            Group {
+                if let data, let image = NSImage(data: data) {
+                    Image(nsImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .accessibilityLabel(label)
+                } else {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(.quaternary)
+                        .overlay {
+                            Text(data == nil ? "Not set" : "Preview unavailable")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .accessibilityLabel("\(label): \(data == nil ? "not set" : "preview unavailable")")
+                }
+            }
+            .frame(width: 110, height: 110)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private var footer: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                Text("Nothing is written until you click Save.")
+                Text("Apply to Draft updates tags and artwork in the editor. Save writes them to the file.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Link(

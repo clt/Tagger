@@ -40,6 +40,7 @@
 		ABF8896163F8BC7BEC9774AA /* FileSystemRenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */; };
 		AEFBB4E2DF1905263921E921 /* AudioMarker-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */; };
 		AF1F24AFBFC934EE0D81E512 /* DirectoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */; };
+		BC6B26D71DD27F0F7767224B /* CoverArtArchiveClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71604B6464A0F3B1BE604422 /* CoverArtArchiveClientTests.swift */; };
 		C168C46F1DE25C50EB196FD1 /* FilenameTagInferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F66037FEE285B91E068983 /* FilenameTagInferenceTests.swift */; };
 		C72F49F17349C2EF421029ED /* BatchID3TagDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */; };
 		D355B4F69EDD182327E188FB /* BatchArtworkEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57FD6DA3F49A36E44F1A990 /* BatchArtworkEditorView.swift */; };
@@ -53,6 +54,7 @@
 		F0315B8DB66AA618A296F15A /* AutoTaggingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C642273FBC3892EDC55931 /* AutoTaggingServiceTests.swift */; };
 		F46E0186908F2396826D1FDC /* AudioMarker in Frameworks */ = {isa = PBXBuildFile; productRef = A7933891FEDAB0A9CA08B345 /* AudioMarker */; };
 		FA33F4FA93C48ADB3C6336A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B372790716A9F321A4B9E6B /* ContentView.swift */; };
+		FE2B92185E1FE5D07930C6A2 /* CoverArtArchiveClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6AE98BA33A96A929A753A3 /* CoverArtArchiveClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +70,7 @@
 /* Begin PBXFileReference section */
 		0D844078576040C9470DA02E /* BatchTagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchTagEditorView.swift; sourceTree = "<group>"; };
 		0EC6D41C7AF42222A4A0E8B9 /* MusicBrainzClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicBrainzClient.swift; sourceTree = "<group>"; };
+		0F6AE98BA33A96A929A753A3 /* CoverArtArchiveClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverArtArchiveClient.swift; sourceTree = "<group>"; };
 		17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3MetadataServiceTests.swift; sourceTree = "<group>"; };
 		1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemRenameTests.swift; sourceTree = "<group>"; };
 		28CB13A5EE67DDC4A95BD451 /* TaggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -89,6 +92,7 @@
 		67959527602771E0967DE32D /* M4AContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AContainer.swift; sourceTree = "<group>"; };
 		6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEntry.swift; sourceTree = "<group>"; };
 		6F4983CB4857838813832F9A /* FolderAccessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderAccessService.swift; sourceTree = "<group>"; };
+		71604B6464A0F3B1BE604422 /* CoverArtArchiveClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverArtArchiveClientTests.swift; sourceTree = "<group>"; };
 		72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AudioMarker-NOTICE.txt"; sourceTree = "<group>"; };
 		75135C387FEE0D4E67F5AB84 /* FilenameDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilenameDraft.swift; sourceTree = "<group>"; };
 		79C642273FBC3892EDC55931 /* AutoTaggingServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTaggingServiceTests.swift; sourceTree = "<group>"; };
@@ -168,6 +172,7 @@
 			children = (
 				4200732D40945EA64590D476 /* AudioMetadataService.swift */,
 				5524C75B688E3E3DD8700FDB /* AutoTaggingService.swift */,
+				0F6AE98BA33A96A929A753A3 /* CoverArtArchiveClient.swift */,
 				568639FD9BEF086685FC0225 /* FilenameTagInference.swift */,
 				93F480128043CF43CA40984F /* FileSystemService.swift */,
 				6F4983CB4857838813832F9A /* FolderAccessService.swift */,
@@ -247,6 +252,7 @@
 				79C642273FBC3892EDC55931 /* AutoTaggingServiceTests.swift */,
 				43102A4DBABFE80D4B6A951E /* AutoTagModelsTests.swift */,
 				435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */,
+				71604B6464A0F3B1BE604422 /* CoverArtArchiveClientTests.swift */,
 				C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */,
 				41F66037FEE285B91E068983 /* FilenameTagInferenceTests.swift */,
 				DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */,
@@ -363,6 +369,7 @@
 				44EE851A4D60E3869616C7D0 /* AutoTagModelsTests.swift in Sources */,
 				F0315B8DB66AA618A296F15A /* AutoTaggingServiceTests.swift in Sources */,
 				C72F49F17349C2EF421029ED /* BatchID3TagDraftTests.swift in Sources */,
+				BC6B26D71DD27F0F7767224B /* CoverArtArchiveClientTests.swift in Sources */,
 				D74215A5CDA3DE67A0663A83 /* FileSystemContentsTests.swift in Sources */,
 				ABF8896163F8BC7BEC9774AA /* FileSystemRenameTests.swift in Sources */,
 				E3B619B84D1FF757CD3994BA /* FilenameDraftTests.swift in Sources */,
@@ -390,6 +397,7 @@
 				24D2D83CAB611A2CA52B4243 /* BatchID3TagDraft.swift in Sources */,
 				4A1AC22ABF16DA33429D17E3 /* BatchTagEditorView.swift in Sources */,
 				FA33F4FA93C48ADB3C6336A5 /* ContentView.swift in Sources */,
+				FE2B92185E1FE5D07930C6A2 /* CoverArtArchiveClient.swift in Sources */,
 				1E60CAE8512B1EE14ED21A0B /* DirectoryEntry.swift in Sources */,
 				AF1F24AFBFC934EE0D81E512 /* DirectoryListView.swift in Sources */,
 				2DB3587714445627FD4FD3D4 /* FileSystemService.swift in Sources */,

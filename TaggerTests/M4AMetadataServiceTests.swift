@@ -425,6 +425,56 @@ final class M4AMetadataServiceTests: XCTestCase {
     }
 
     @MainActor
+    func testM4AArtworkSuggestionStaysInDraftAndSurvivesSaveFailure() async throws {
+        for externalChange in [false, true] {
+            let fixture = try M4ATestFixture(metadata: M4ATestFixture.taggedItems)
+            defer { fixture.remove() }
+            let autoTagger = M4AArtworkSuggestionStub()
+            let session = LibrarySession(
+                metadataService: AudioMetadataService(), autoTaggingService: autoTagger
+            )
+            session.requestSelectFile(fixture.file)
+            try await waitUntil { !session.isLoadingTag }
+            session.startAutoTagSearch()
+            session.searchMusicBrainzTags()
+            try await waitUntil { session.autoTagPhase == .choosing }
+            session.resolveAutoTagCandidate(autoTagger.candidate)
+            try await waitUntil { session.autoTagPhase == .reviewing }
+            XCTAssertEqual(session.draft?.artworkData, M4ATestFixture.tinyPNG)
+            XCTAssertFalse(session.autoTagReview?.isArtworkSelected == true)
+            XCTAssertFalse(session.canApplyAutoTagReview)
+            session.setAutoTagArtwork(isSelected: true)
+            XCTAssertTrue(session.canApplyAutoTagReview)
+            session.applyAutoTagReview()
+            XCTAssertEqual(session.draft?.artworkData, M4ATestFixture.secondPNG)
+            XCTAssertTrue(session.isDirty)
+            XCTAssertEqual(try Data(contentsOf: fixture.file), fixture.original)
+
+            var expected = M4ATestFixture.originalDraft
+            expected.artworkData = M4ATestFixture.secondPNG
+            if externalChange {
+                let changed = fixture.original + M4ATestFixture.box("free", Data([1, 2, 3]))
+                try changed.write(to: fixture.file)
+                let didSave = await session.save()
+                XCTAssertFalse(didSave)
+                XCTAssertNotNil(session.presentedError)
+                XCTAssertEqual(session.draft, expected)
+                XCTAssertTrue(session.isDirty)
+                XCTAssertEqual(try Data(contentsOf: fixture.file), changed)
+            } else {
+                let didSave = await session.save()
+                XCTAssertTrue(didSave, session.presentedError?.message ?? "Artwork save failed")
+                XCTAssertFalse(session.isDirty)
+                let reloaded = try await M4AMetadataService().load(from: fixture.file)
+                XCTAssertEqual(reloaded.draft, expected)
+                let bytes = try Data(contentsOf: fixture.file)
+                try assertMediaPreserved(in: bytes, fixture: fixture)
+                try assertUnknownMetadataPreserved(in: bytes)
+            }
+        }
+    }
+
+    @MainActor
     func testFailedM4ASaveRetainsAppliedAutoTagDraft() async throws {
         let fixture = try M4ATestFixture(metadata: M4ATestFixture.taggedItems)
         defer { fixture.remove() }
@@ -499,6 +549,32 @@ final class M4AMetadataServiceTests: XCTestCase {
             ["moov", "udta", "meta", "ilst", key, "data"], in: bytes
         ))
         return Data(atom.payload.dropFirst(8))
+    }
+}
+
+private struct M4AArtworkSuggestionStub: AutoTaggingServicing {
+    let candidate = AutoTagCandidate(
+        id: "cover", source: .musicBrainz, title: "Original Title", subtitle: "Original Album",
+        matchScore: 100,
+        reference: .musicBrainz(
+            recordingID: "4e43d873-7b8a-4b95-97e6-4f692b1a0c75",
+            releaseID: "f4cf6b7b-5d14-4f30-8a83-50a70591198f"
+        ),
+        preview: AutoTagValues()
+    )
+
+    func search(_ request: AutoTagSearchRequest) async throws -> AutoTagSearchOutcome {
+        AutoTagSearchOutcome(candidates: [candidate], warningMessage: nil)
+    }
+
+    func resolve(_ candidate: AutoTagCandidate, for request: AutoTagSearchRequest) async throws -> AutoTagProposal {
+        AutoTagProposal(
+            candidate: candidate, values: AutoTagValues(),
+            artwork: AutoTagArtwork(
+                data: M4ATestFixture.secondPNG,
+                sourceURL: URL(string: "https://coverartarchive.org/release/f4cf6b7b-5d14-4f30-8a83-50a70591198f/front-1200")!
+            )
+        )
     }
 }
 

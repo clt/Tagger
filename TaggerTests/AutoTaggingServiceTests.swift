@@ -5,7 +5,8 @@ import XCTest
 final class AutoTaggingServiceTests: XCTestCase {
     func testFilenameSearchAndResolutionNeverContactMusicBrainz() async throws {
         let remote = AutoTagMusicBrainzStub()
-        let service = AutoTaggingService(musicBrainz: remote)
+        let coverArt = AutoTagCoverArtStub()
+        let service = AutoTaggingService(musicBrainz: remote, coverArt: coverArt)
         let request = request()
 
         let outcome = try await service.search(request)
@@ -21,12 +22,16 @@ final class AutoTaggingServiceTests: XCTestCase {
         let resolutions = await remote.resolutionCount()
         XCTAssertTrue(seeds.isEmpty)
         XCTAssertEqual(resolutions, 0)
+        let coverRequests = await coverArt.recordedReleaseIDs()
+        XCTAssertTrue(coverRequests.isEmpty)
+        XCTAssertNil(proposal.artwork)
     }
 
     func testOnlineSearchUsesOnlyExplicitSeedAndKeepsFilenameSuggestion() async throws {
-        let remoteCandidate = candidate()
+        let remoteCandidate = candidate(releaseID: releaseID)
         let remote = AutoTagMusicBrainzStub(candidates: [remoteCandidate])
-        let service = AutoTaggingService(musicBrainz: remote)
+        let coverArt = AutoTagCoverArtStub()
+        let service = AutoTaggingService(musicBrainz: remote, coverArt: coverArt)
         let seed = MusicBrainzSearchSeed(
             title: "User Corrected Title", artist: "User Corrected Artist", album: "User Corrected Album"
         )
@@ -38,6 +43,8 @@ final class AutoTaggingServiceTests: XCTestCase {
         let sentSeeds = await remote.recordedSeeds()
         XCTAssertEqual(sentSeeds, [seed])
         XCTAssertNil(outcome.warningMessage)
+        let coverRequests = await coverArt.recordedReleaseIDs()
+        XCTAssertTrue(coverRequests.isEmpty)
     }
 
     func testNetworkFailureLeavesFilenameSuggestionAvailable() async throws {
@@ -84,6 +91,157 @@ final class AutoTaggingServiceTests: XCTestCase {
         }
     }
 
+    func testReleaseResolutionEnrichesTextProposalWithArtwork() async throws {
+        let cover = artwork()
+        let remote = AutoTagMusicBrainzStub()
+        let coverArt = AutoTagCoverArtStub(result: .success(cover))
+        let service = AutoTaggingService(musicBrainz: remote, coverArt: coverArt)
+        let candidate = candidate(releaseID: releaseID)
+
+        let proposal = try await service.resolve(candidate, for: request())
+
+        XCTAssertEqual(proposal.candidate, candidate)
+        XCTAssertEqual(proposal.values, candidate.preview)
+        XCTAssertEqual(proposal.artwork, cover)
+        XCTAssertNil(proposal.artworkMessage)
+        let coverRequests = await coverArt.recordedReleaseIDs()
+        let resolutions = await remote.resolutionCount()
+        XCTAssertEqual(coverRequests, [releaseID])
+        XCTAssertEqual(resolutions, 1)
+    }
+
+    func testMissingCoverKeepsTextProposalWithInformationalMessage() async throws {
+        let service = AutoTaggingService(
+            musicBrainz: AutoTagMusicBrainzStub(), coverArt: AutoTagCoverArtStub()
+        )
+        let candidate = candidate(releaseID: releaseID)
+
+        let proposal = try await service.resolve(candidate, for: request())
+
+        XCTAssertEqual(proposal.values, candidate.preview)
+        XCTAssertNil(proposal.artwork)
+        XCTAssertEqual(proposal.artworkMessage, "No front cover is available for this release.")
+    }
+
+    func testCoverFailureKeepsTextProposalWithUsefulWarning() async throws {
+        let service = AutoTaggingService(
+            musicBrainz: AutoTagMusicBrainzStub(),
+            coverArt: AutoTagCoverArtStub(result: .failure(CoverArtArchiveError.httpStatus(503)))
+        )
+        let candidate = candidate(releaseID: releaseID)
+
+        let proposal = try await service.resolve(candidate, for: request())
+
+        XCTAssertEqual(proposal.values, candidate.preview)
+        XCTAssertNil(proposal.artwork)
+        XCTAssertTrue(proposal.artworkMessage?.contains("503") == true)
+        XCTAssertTrue(proposal.artworkMessage?.contains("Text tag suggestions are still available") == true)
+    }
+
+    func testRecordingOnlyResolutionDoesNotRequestArtwork() async throws {
+        let coverArt = AutoTagCoverArtStub(result: .success(artwork()))
+        let service = AutoTaggingService(musicBrainz: AutoTagMusicBrainzStub(), coverArt: coverArt)
+
+        let proposal = try await service.resolve(candidate(), for: request())
+
+        XCTAssertNil(proposal.artwork)
+        XCTAssertNil(proposal.artworkMessage)
+        let coverRequests = await coverArt.recordedReleaseIDs()
+        XCTAssertTrue(coverRequests.isEmpty)
+    }
+
+    func testMusicBrainzResolutionFailureDoesNotRequestArtwork() async {
+        let coverArt = AutoTagCoverArtStub()
+        let service = AutoTaggingService(
+            musicBrainz: AutoTagMusicBrainzStub(resolutionError: .unavailable), coverArt: coverArt
+        )
+
+        do {
+            _ = try await service.resolve(candidate(releaseID: releaseID), for: request())
+            XCTFail("Expected metadata resolution failure")
+        } catch {
+            XCTAssertEqual(error as? AutoTagMusicBrainzStub.SearchError, .unavailable)
+        }
+        let coverRequests = await coverArt.recordedReleaseIDs()
+        XCTAssertTrue(coverRequests.isEmpty)
+    }
+
+    func testCoverCancellationIsNotConvertedToAWarning() async {
+        for error in [CancellationError() as Error, URLError(.cancelled)] {
+            let service = AutoTaggingService(
+                musicBrainz: AutoTagMusicBrainzStub(),
+                coverArt: AutoTagCoverArtStub(result: .failure(error))
+            )
+            do {
+                _ = try await service.resolve(candidate(releaseID: releaseID), for: request())
+                XCTFail("Expected cover cancellation to propagate")
+            } catch {
+                XCTAssertTrue(error is CancellationError)
+            }
+        }
+    }
+
+    func testLateCoverResultIsDiscardedAfterCancellation() async throws {
+        let service = AutoTaggingService(
+            musicBrainz: AutoTagMusicBrainzStub(),
+            coverArt: AutoTagCoverArtStub(result: .success(artwork()), cancelBeforeReturning: true)
+        )
+        let candidate = candidate(releaseID: releaseID)
+        let request = request()
+        let task = Task { try await service.resolve(candidate, for: request) }
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected a late cover result to be discarded")
+        } catch {
+            XCTAssertTrue(error is CancellationError)
+        }
+    }
+
+    func testCancellationAfterTextResolutionPreventsCoverRequest() async {
+        let coverArt = AutoTagCoverArtStub()
+        let service = AutoTaggingService(
+            musicBrainz: AutoTagMusicBrainzStub(cancelBeforeReturning: true), coverArt: coverArt
+        )
+        let candidate = candidate(releaseID: releaseID)
+        let request = request()
+        let task = Task { try await service.resolve(candidate, for: request) }
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected cancelled resolution to be discarded")
+        } catch {
+            XCTAssertTrue(error is CancellationError)
+        }
+        let coverRequests = await coverArt.recordedReleaseIDs()
+        XCTAssertTrue(coverRequests.isEmpty)
+    }
+
+    func testCancellationAfterSearchDiscardsLateCandidates() async {
+        let service = AutoTaggingService(
+            musicBrainz: AutoTagMusicBrainzStub(cancelBeforeReturning: true),
+            coverArt: AutoTagCoverArtStub()
+        )
+        let request = request(searchSeed: MusicBrainzSearchSeed(title: "Roads", artist: nil, album: nil))
+        let task = Task { try await service.search(request) }
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected cancelled search to be discarded")
+        } catch {
+            XCTAssertTrue(error is CancellationError)
+        }
+    }
+
+    private let releaseID = "f4cf6b7b-5d14-4f30-8a83-50a70591198f"
+
+    private func artwork() -> AutoTagArtwork {
+        AutoTagArtwork(
+            data: Data([0x01, 0x02]),
+            sourceURL: URL(string: "https://coverartarchive.org/release/\(releaseID)/front-1200")!
+        )
+    }
+
     private func request(searchSeed: MusicBrainzSearchSeed? = nil) -> AutoTagSearchRequest {
         AutoTagSearchRequest(
             fileURL: URL(fileURLWithPath: "/tmp/TaggerAutoTagServiceTests/01 - Portishead - Roads.mp3"),
@@ -92,11 +250,11 @@ final class AutoTaggingServiceTests: XCTestCase {
         )
     }
 
-    private func candidate() -> AutoTagCandidate {
+    private func candidate(releaseID: String? = nil) -> AutoTagCandidate {
         AutoTagCandidate(
             id: "remote", source: .musicBrainz, title: "Roads", subtitle: "Portishead • Dummy",
             matchScore: 100,
-            reference: .musicBrainz(recordingID: "recording", releaseID: nil),
+            reference: .musicBrainz(recordingID: "recording", releaseID: releaseID),
             preview: AutoTagValues(title: "Roads", artist: "Portishead", album: "Dummy")
         )
     }
@@ -110,26 +268,58 @@ private actor AutoTagMusicBrainzStub: MusicBrainzSearching {
 
     private let candidates: [AutoTagCandidate]
     private let searchError: SearchError?
+    private let resolutionError: SearchError?
+    private let cancelBeforeReturning: Bool
     private var seeds: [MusicBrainzSearchSeed] = []
     private var resolutions = 0
 
-    init(candidates: [AutoTagCandidate] = [], searchError: SearchError? = nil) {
+    init(
+        candidates: [AutoTagCandidate] = [],
+        searchError: SearchError? = nil,
+        resolutionError: SearchError? = nil,
+        cancelBeforeReturning: Bool = false
+    ) {
         self.candidates = candidates
         self.searchError = searchError
+        self.resolutionError = resolutionError
+        self.cancelBeforeReturning = cancelBeforeReturning
     }
 
     func search(seed: MusicBrainzSearchSeed) async throws -> [AutoTagCandidate] {
         seeds.append(seed)
         if searchError == .cancelled { throw CancellationError() }
         if let searchError { throw searchError }
+        if cancelBeforeReturning { withUnsafeCurrentTask { $0?.cancel() } }
         return candidates
     }
 
     func resolve(candidate: AutoTagCandidate, request: AutoTagSearchRequest) async throws -> AutoTagProposal {
         resolutions += 1
+        if resolutionError == .cancelled { throw CancellationError() }
+        if let resolutionError { throw resolutionError }
+        if cancelBeforeReturning { withUnsafeCurrentTask { $0?.cancel() } }
         return AutoTagProposal(candidate: candidate, values: candidate.preview)
     }
 
     func recordedSeeds() -> [MusicBrainzSearchSeed] { seeds }
     func resolutionCount() -> Int { resolutions }
+}
+
+private actor AutoTagCoverArtStub: CoverArtFetching {
+    private let result: Result<AutoTagArtwork?, Error>
+    private let cancelBeforeReturning: Bool
+    private var releaseIDs: [String] = []
+
+    init(result: Result<AutoTagArtwork?, Error> = .success(nil), cancelBeforeReturning: Bool = false) {
+        self.result = result
+        self.cancelBeforeReturning = cancelBeforeReturning
+    }
+
+    func frontCover(forReleaseID releaseID: String) async throws -> AutoTagArtwork? {
+        releaseIDs.append(releaseID)
+        if cancelBeforeReturning { withUnsafeCurrentTask { $0?.cancel() } }
+        return try result.get()
+    }
+
+    func recordedReleaseIDs() -> [String] { releaseIDs }
 }

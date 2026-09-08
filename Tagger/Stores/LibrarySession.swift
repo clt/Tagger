@@ -629,6 +629,12 @@ final class LibrarySession {
         autoTagReview = review
     }
 
+    func setAutoTagArtwork(isSelected: Bool) {
+        guard autoTagPhase == .reviewing, var review = autoTagReview else { return }
+        review.isArtworkSelected = isSelected
+        autoTagReview = review
+    }
+
     func returnToAutoTagCandidates() {
         guard autoTagPhase == .reviewing, !autoTagCandidates.isEmpty else { return }
         autoTagReview = nil
