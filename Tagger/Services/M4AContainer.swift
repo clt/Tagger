@@ -147,15 +147,16 @@ struct M4AContainer: Sendable {
             (FourCC.disk, draft.discNumber, updated.discNumber, numbers.disc)
         ] where oldValue != newValue {
             changed.insert(type)
-            if let number {
-                var bytes = Data(repeating: 0, count: type == .trkn ? 8 : 6)
-                if let oldItem = items.first(where: { $0.type == type }),
-                   let oldData = try parser.dataValue(in: oldItem) {
-                    // Keep the total count and any reserved bytes already present.
-                    bytes = oldData.bytes
-                }
-                bytes[2] = UInt8(number >> 8)
-                bytes[3] = UInt8(number & 255)
+            var bytes = Data(repeating: 0, count: type == .trkn ? 8 : 6)
+            if let oldItem = items.first(where: { $0.type == type }),
+               let oldData = try parser.dataValue(in: oldItem) {
+                bytes = oldData.bytes
+            }
+            // Zero represents a blank number. Keep totals and reserved bytes
+            // even when clearing the number exposed in the editor.
+            bytes[2] = UInt8((number ?? 0) >> 8)
+            bytes[3] = UInt8((number ?? 0) & 255)
+            if number != nil || bytes.contains(where: { $0 != 0 }) {
                 replacements[type] = try Self.item(type, kind: 0, bytes: bytes)
             }
         }

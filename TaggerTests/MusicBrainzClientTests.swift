@@ -75,6 +75,65 @@ final class MusicBrainzClientTests: XCTestCase {
         XCTAssertFalse(try XCTUnwrap(requests[0].url?.absoluteString).contains("/Music/"))
     }
 
+    func testSearchPreservesPlusSignsThroughServerFormDecoding() async throws {
+        let http = MusicBrainzHTTPStub(responses: [response(#"{"recordings":[]}"#)])
+        let client = MusicBrainzClient(httpClient: http, minimumInterval: .zero)
+
+        _ = try await client.search(seed: MusicBrainzSearchSeed(
+            title: "1+1", artist: "+44", album: "Body + Soul %2B"
+        ))
+
+        let requests = await http.recordedRequests()
+        let url = try XCTUnwrap(requests.first?.url)
+        let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        let encodedQuery = try XCTUnwrap(components.percentEncodedQuery)
+        XCTAssertFalse(encodedQuery.contains("+"))
+        let serverItems = try encodedQuery.split(separator: "&").map { item in
+            let pair = item.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            return (
+                String(pair[0]),
+                try XCTUnwrap(String(pair[1])
+                    .replacingOccurrences(of: "+", with: " ")
+                    .removingPercentEncoding)
+            )
+        }
+        let serverParameters = Dictionary(uniqueKeysWithValues: serverItems)
+        XCTAssertEqual(
+            serverParameters["query"],
+            #"recording:"1\+1" AND artist:"\+44" AND release:"Body \+ Soul %2B""#
+        )
+        XCTAssertEqual(serverParameters["fmt"], "json")
+        XCTAssertEqual(serverParameters["limit"], "10")
+    }
+
+    func testSearchNormalizesAllTermsToCanonicalRequestBytes() async throws {
+        let http = MusicBrainzHTTPStub(responses: [
+            response(#"{"recordings":[]}"#), response(#"{"recordings":[]}"#),
+        ])
+        let client = MusicBrainzClient(httpClient: http, minimumInterval: .zero, maximumCacheEntries: 0)
+        let composed = MusicBrainzSearchSeed(title: "ポリシー", artist: "Beyoncé", album: "Café")
+        let decomposed = MusicBrainzSearchSeed(
+            title: composed.title.decomposedStringWithCanonicalMapping,
+            artist: composed.artist?.decomposedStringWithCanonicalMapping,
+            album: composed.album?.decomposedStringWithCanonicalMapping
+        )
+
+        _ = try await client.search(seed: decomposed)
+        _ = try await client.search(seed: composed)
+
+        let requests = await http.recordedRequests()
+        XCTAssertEqual(requests.count, 2)
+        let decomposedURL = try XCTUnwrap(requests.first?.url)
+        let composedURL = try XCTUnwrap(requests.last?.url)
+        XCTAssertEqual(Array(decomposedURL.absoluteString.utf8), Array(composedURL.absoluteString.utf8))
+        let components = try XCTUnwrap(URLComponents(url: decomposedURL, resolvingAgainstBaseURL: false))
+        let query = try XCTUnwrap(components.queryItems?.first(where: { $0.name == "query" })?.value)
+        XCTAssertEqual(
+            Array(query.utf8),
+            Array(#"recording:"ポリシー" AND artist:"Beyoncé" AND release:"Café""#.utf8)
+        )
+    }
+
     func testResolveMapsExactTrackAndMediumWithoutTouchingUnsupportedFields() async throws {
         let recordingID = "4e43d873-7b8a-4b95-97e6-4f692b1a0c75"
         let releaseID = "f4cf6b7b-5d14-4f30-8a83-50a70591198f"

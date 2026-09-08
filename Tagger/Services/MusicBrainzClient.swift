@@ -238,15 +238,20 @@ actor MusicBrainzClient: MusicBrainzSearching {
             clauses.append("release:\"\(luceneEscape(album))\"")
         }
 
+        // MusicBrainz searches its NFC-normalized index; file names may use NFD.
+        let query = clauses.joined(separator: " AND ").precomposedStringWithCanonicalMapping
         var components = URLComponents()
         components.scheme = "https"
         components.host = "musicbrainz.org"
         components.path = "/ws/2/recording"
         components.queryItems = [
-            URLQueryItem(name: "query", value: clauses.joined(separator: " AND ")),
+            URLQueryItem(name: "query", value: query),
             URLQueryItem(name: "fmt", value: "json"),
             URLQueryItem(name: "limit", value: "10"),
         ]
+        // URLQueryItem leaves '+' literal, but the server decodes it as a space.
+        components.percentEncodedQuery = components.percentEncodedQuery?
+            .replacingOccurrences(of: "+", with: "%2B")
         guard let url = components.url else { throw MusicBrainzError.invalidRequest }
         return url
     }

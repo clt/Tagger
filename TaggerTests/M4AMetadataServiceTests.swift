@@ -115,6 +115,62 @@ final class M4AMetadataServiceTests: XCTestCase {
         XCTAssertEqual(M4ATestFixture.integer(disc[4..<6]), 3)
     }
 
+    func testClearingTrackAndDiscPreservesTotalsAndReservedBytes() async throws {
+        for hasTotals in [true, false] {
+            var track = Data([0x12, 0x34, 0, 3, 0, hasTotals ? 12 : 0, 0x56, 0x78])
+            var disc = Data([0xAB, 0xCD, 0, 1, 0, hasTotals ? 3 : 0])
+            let fixture = try M4ATestFixture(metadata:
+                M4ATestFixture.item("trkn", value: track)
+                + M4ATestFixture.item("disk", value: disc) + M4ATestFixture.unknownItem
+            )
+            defer { fixture.remove() }
+            let service = M4AMetadataService()
+            let loaded = try await service.load(from: fixture.file)
+            let cleared = try await service.save(loaded, draft: ID3TagDraft())
+            XCTAssertEqual(cleared.draft, ID3TagDraft())
+            track[3] = 0
+            disc[3] = 0
+            let bytes = try Data(contentsOf: fixture.file)
+            XCTAssertEqual(try metadataValue("trkn", in: bytes), track)
+            XCTAssertEqual(try metadataValue("disk", in: bytes), disc)
+            try assertMediaPreserved(in: bytes, fixture: fixture)
+            try assertUnknownMetadataPreserved(in: bytes)
+
+            // A subsequent edit must also retain the information hidden from the draft.
+            let reloaded = try await service.load(from: fixture.file)
+            XCTAssertEqual(reloaded.draft, ID3TagDraft())
+            let replacement = ID3TagDraft(trackNumber: "7", discNumber: "2")
+            let saved = try await service.save(reloaded, draft: replacement)
+            XCTAssertEqual(saved.draft, replacement)
+            track[3] = 7
+            disc[3] = 2
+            let updatedBytes = try Data(contentsOf: fixture.file)
+            XCTAssertEqual(try metadataValue("trkn", in: updatedBytes), track)
+            XCTAssertEqual(try metadataValue("disk", in: updatedBytes), disc)
+            try assertMediaPreserved(in: updatedBytes, fixture: fixture)
+            try assertUnknownMetadataPreserved(in: updatedBytes)
+        }
+    }
+
+    func testClearingTrackAndDiscWithoutOtherInformationRemovesTheirAtoms() async throws {
+        let fixture = try M4ATestFixture(metadata:
+            M4ATestFixture.item("trkn", value: Data([0, 0, 0, 3, 0, 0, 0, 0]))
+            + M4ATestFixture.item("disk", value: Data([0, 0, 0, 1, 0, 0]))
+            + M4ATestFixture.unknownItem
+        )
+        defer { fixture.remove() }
+        let service = M4AMetadataService()
+        let loaded = try await service.load(from: fixture.file)
+        let cleared = try await service.save(loaded, draft: ID3TagDraft())
+        XCTAssertEqual(cleared.draft, ID3TagDraft())
+        let bytes = try Data(contentsOf: fixture.file)
+        for key in ["trkn", "disk"] {
+            XCTAssertNil(try M4ATestAtom.find(["moov", "udta", "meta", "ilst", key], in: bytes))
+        }
+        try assertMediaPreserved(in: bytes, fixture: fixture)
+        try assertUnknownMetadataPreserved(in: bytes)
+    }
+
     func testReplacingArtworkPreservesAudioAndRemovingItRemovesTheCoverAtom() async throws {
         let fixture = try M4ATestFixture(metadata: M4ATestFixture.taggedItems)
         defer { fixture.remove() }
