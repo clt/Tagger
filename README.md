@@ -9,7 +9,7 @@ Tagger is a small native macOS app for browsing folders of MP3 and M4A files and
 - Three-column folder tree, file list, and tag editor
 - Single-file editing plus Finder-style multi-selection for batch editing
 - Single-file filename editing with the original extension preserved
-- Review-first tag suggestions from file names and MusicBrainz, with front covers from Cover Art Archive
+- Review-first tag suggestions from file names and MusicBrainz, with original Cover Art Archive images and optional Apple Music cover choices
 - Mixed-value protection: batch saves change only fields explicitly marked Apply
 - ID3v2.3 and ID3v2.4 reading and writing
 - MP4 metadata reading and writing for M4A files containing AAC or Apple Lossless (ALAC) audio
@@ -43,15 +43,31 @@ shows your current artwork alongside the suggested image. Artwork is checked by
 default only when the draft has none; replacing an existing image requires checking
 **Artwork**. You can apply just the artwork even when the text tags already match.
 Missing or unavailable covers leave existing artwork untouched and do not prevent
-applying text suggestions. This version retrieves the selected release's front
-cover at up to 1200 pixels, falling back to 500 pixels when that thumbnail is missing;
-it does not search other editions or retrieve back covers. Downloads are limited to
-8 MB and validated as JPEG or PNG before they appear in the review.
+applying text suggestions. Tagger tries the selected release's original front cover,
+then its 1200- and 500-pixel thumbnails if the original is missing, invalid, or too
+large. Each image is limited to 8 MiB and 4096 pixels per side and decoded as JPEG
+or PNG before it appears in the review.
+
+Choose **Find Apple Music Covers** for additional choices from Apple's US catalog.
+Choose a cover, inspect its preview, actual pixel dimensions, and full album edition
+name, then check **Artwork** to include it. Apple alternatives never replace the
+selected cover automatically or change the MusicBrainz text suggestions. A remaster
+or deluxe edition may have different artwork; the catalog's release year alone does
+not identify the edition. Up to three Apple covers are downloaded per search.
+
+Apple lookup uses the public [iTunes Search API](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/Searching.html)
+and needs no account or API key. Tagger requests a 3000-pixel CDN variant as best
+effort and falls back to the supplied artwork URL. That larger-size substitution
+is not a documented Search API guarantee; the review reports the image's decoded
+size, never an assumed original or maximum resolution. Source links remain visible.
+Artwork remains copyrighted by its respective owners.
 
 Online lookup is opt-in: opening Find Tags does not contact MusicBrainz. Choosing
 Search MusicBrainz sends the displayed title, artist, and album over HTTPS.
 Choosing a MusicBrainz candidate may fetch its release details and sends its release
-identifier to Cover Art Archive, which serves images through Internet Archive. Tagger does not
+identifier to Cover Art Archive, which serves images through Internet Archive.
+**Find Apple Music Covers** separately sends the album and artist to Apple and
+fetches matching images from Apple's image CDN. Tagger does not
 upload the audio file, artwork, full file path, comments, or lyrics. MusicBrainz requests
 share an application-wide rate limiter. You can use filename suggestions while an online
 search is pending or unavailable. MusicBrainz core metadata is made available

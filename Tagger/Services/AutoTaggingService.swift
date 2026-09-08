@@ -1,6 +1,7 @@
 import Foundation
 
 protocol AutoTaggingServicing: Sendable {
+    func searchAppleArtwork(artist: String, album: String) async throws -> ArtworkSearchOutcome
     func search(_ request: AutoTagSearchRequest) async throws -> AutoTagSearchOutcome
     func resolve(
         _ candidate: AutoTagCandidate,
@@ -8,19 +9,35 @@ protocol AutoTaggingServicing: Sendable {
     ) async throws -> AutoTagProposal
 }
 
+extension AutoTaggingServicing {
+    func searchAppleArtwork(artist: String, album: String) async throws -> ArtworkSearchOutcome {
+        ArtworkSearchOutcome(artworks: [], warningMessage: "Apple Music artwork search is unavailable.")
+    }
+}
+
 actor AutoTaggingService: AutoTaggingServicing {
     private let filenameInference: FilenameTagInference
     private let musicBrainz: any MusicBrainzSearching
     private let coverArt: any CoverArtFetching
+    private let appleArtwork: any AppleArtworkSearching
 
     init(
         filenameInference: FilenameTagInference = FilenameTagInference(),
         musicBrainz: any MusicBrainzSearching = MusicBrainzClient(),
-        coverArt: any CoverArtFetching = CoverArtArchiveClient()
+        coverArt: any CoverArtFetching = CoverArtArchiveClient(),
+        appleArtwork: any AppleArtworkSearching = AppleArtworkClient()
     ) {
         self.filenameInference = filenameInference
         self.musicBrainz = musicBrainz
         self.coverArt = coverArt
+        self.appleArtwork = appleArtwork
+    }
+
+    func searchAppleArtwork(artist: String, album: String) async throws -> ArtworkSearchOutcome {
+        try Task.checkCancellation()
+        let outcome = try await appleArtwork.search(artist: artist, album: album)
+        try Task.checkCancellation()
+        return outcome
     }
 
     func search(_ request: AutoTagSearchRequest) async throws -> AutoTagSearchOutcome {

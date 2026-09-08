@@ -1,7 +1,4 @@
-import AudioMarker
 import Foundation
-import ImageIO
-import UniformTypeIdentifiers
 
 protocol CoverArtFetching: Sendable {
     func frontCover(forReleaseID releaseID: String) async throws -> AutoTagArtwork?
@@ -37,9 +34,6 @@ enum CoverArtArchiveError: LocalizedError, Equatable, Sendable {
 }
 
 actor CoverArtArchiveClient: CoverArtFetching {
-    static let maximumDimension = 4_096
-    static let maximumPixelCount = 8_000_000
-
     private let httpClient: any HTTPDataLoading
     private let userAgent: String
 
@@ -57,8 +51,10 @@ actor CoverArtArchiveClient: CoverArtFetching {
             throw CoverArtArchiveError.invalidReleaseID
         }
 
-        for size in [1_200, 500] {
-            let url = URL(string: "https://coverartarchive.org/release/\(identifier.uuidString.lowercased())/front-\(size)")!
+        var imageFailure: CoverArtArchiveError?
+        for endpoint in ["front", "front-1200", "front-500"] {
+            try Task.checkCancellation()
+            let url = URL(string: "https://coverartarchive.org/release/\(identifier.uuidString.lowercased())/\(endpoint)")!
             var request = URLRequest(url: url, timeoutInterval: 15)
             request.httpMethod = "GET"
             request.setValue("image/jpeg, image/png", forHTTPHeaderField: "Accept")
@@ -72,7 +68,8 @@ actor CoverArtArchiveClient: CoverArtFetching {
                 try Task.checkCancellation()
                 if (error as? URLError)?.code == .cancelled { throw CancellationError() }
                 if error as? MusicBrainzError == .responseTooLarge {
-                    throw CoverArtArchiveError.responseTooLarge
+                    imageFailure = .responseTooLarge
+                    continue
                 }
                 if error as? MusicBrainzError == .invalidResponse {
                     throw CoverArtArchiveError.invalidResponse
@@ -84,50 +81,27 @@ actor CoverArtArchiveClient: CoverArtFetching {
             guard (200..<300).contains(response.statusCode) else {
                 throw CoverArtArchiveError.httpStatus(response.statusCode)
             }
-            guard response.data.count <= HTTPResponse.maximumDataSize else {
-                throw CoverArtArchiveError.responseTooLarge
+            if response.data.count > HTTPResponse.maximumDataSize {
+                imageFailure = .responseTooLarge
+                continue
             }
-            try validateImage(response.data)
+            let dimensions: (width: Int, height: Int)
+            do {
+                dimensions = try ArtworkImageValidator.dimensions(of: response.data)
+            } catch let error as CoverArtArchiveError {
+                try Task.checkCancellation()
+                imageFailure = error
+                continue
+            }
             try Task.checkCancellation()
-            return AutoTagArtwork(data: response.data, sourceURL: url)
+            return AutoTagArtwork(
+                data: response.data, sourceURL: url,
+                pixelWidth: dimensions.width, pixelHeight: dimensions.height,
+                isOriginal: endpoint == "front"
+            )
         }
+        try Task.checkCancellation()
+        if let imageFailure { throw imageFailure }
         return nil
-    }
-
-    private func validateImage(_ data: Data) throws {
-        guard (try? Artwork(data: data)) != nil else {
-            throw CoverArtArchiveError.unsupportedImage
-        }
-        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
-              let type = CGImageSourceGetType(source) as String? else {
-            throw CoverArtArchiveError.invalidImage
-        }
-        guard type == UTType.jpeg.identifier || type == UTType.png.identifier else {
-            throw CoverArtArchiveError.unsupportedImage
-        }
-        guard CGImageSourceGetCount(source) == 1,
-              CGImageSourceGetStatus(source) == .statusComplete,
-              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
-              let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.intValue,
-              let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.intValue,
-              width > 0, height > 0 else {
-            throw CoverArtArchiveError.invalidImage
-        }
-        guard width <= Self.maximumDimension, height <= Self.maximumDimension,
-              width * height <= Self.maximumPixelCount else {
-            throw CoverArtArchiveError.imageDimensionsTooLarge
-        }
-        // Force pixel decoding now, after the dimensions have bounded its memory use.
-        let options = [
-            kCGImageSourceShouldCache: true,
-            kCGImageSourceShouldCacheImmediately: true,
-        ] as CFDictionary
-        guard let image = CGImageSourceCreateImageAtIndex(source, 0, options),
-              image.width == width, image.height == height,
-              let decodedPixels = image.dataProvider?.data,
-              CFDataGetLength(decodedPixels) >= image.bytesPerRow * image.height,
-              CGImageSourceGetStatusAtIndex(source, 0) == .statusComplete else {
-            throw CoverArtArchiveError.invalidImage
-        }
     }
 }

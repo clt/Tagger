@@ -8,7 +8,7 @@ import XCTest
 final class CoverArtArchiveClientTests: XCTestCase {
     private let releaseID = "f4cf6b7b-5d14-4f30-8a83-50a70591198f"
 
-    func testFetchesValidatedJPEGAndPNGFromExactRelease() async throws {
+    func testPrefersOriginalJPEGAndPNGFromExactReleaseAndPreservesBytes() async throws {
         for format in [UTType.jpeg, .png] {
             let data = try imageData(format: format)
             let http = CoverArtHTTPStub(responses: [.success(response(data))])
@@ -17,13 +17,17 @@ final class CoverArtArchiveClientTests: XCTestCase {
             let artwork = try await client.frontCover(forReleaseID: releaseID.uppercased())
 
             XCTAssertEqual(artwork?.data, data, "Preserve the original validated image bytes")
+            XCTAssertEqual(artwork?.pixelWidth, 3)
+            XCTAssertEqual(artwork?.pixelHeight, 2)
+            XCTAssertEqual(artwork?.provider, .coverArtArchive)
+            XCTAssertEqual(artwork?.isOriginal, true)
             XCTAssertNoThrow(try Artwork(data: XCTUnwrap(artwork?.data)))
             let requests = await http.recordedRequests()
             XCTAssertEqual(requests.count, 1)
             let request = try XCTUnwrap(requests.first)
             XCTAssertEqual(request.url?.scheme, "https")
             XCTAssertEqual(request.url?.host, "coverartarchive.org")
-            XCTAssertEqual(request.url?.path, "/release/\(releaseID)/front-1200")
+            XCTAssertEqual(request.url?.path, "/release/\(releaseID)/front")
             XCTAssertNil(request.url?.query)
             XCTAssertEqual(request.httpMethod, "GET")
             XCTAssertNil(request.httpBody)
@@ -34,7 +38,24 @@ final class CoverArtArchiveClientTests: XCTestCase {
         }
     }
 
-    func testMissing1200ThumbnailFallsBackTo500ForTheSameRelease() async throws {
+    func testAccepts3000And4000PixelOriginalCovers() async throws {
+        for side in [3_000, 4_000] {
+            let data = try imageData(format: .jpeg, width: side, height: side)
+            let http = CoverArtHTTPStub(responses: [.success(response(data))])
+            let client = CoverArtArchiveClient(httpClient: http)
+
+            let artwork = try await client.frontCover(forReleaseID: releaseID)
+
+            XCTAssertEqual(artwork?.data, data)
+            XCTAssertEqual(artwork?.pixelWidth, side)
+            XCTAssertEqual(artwork?.pixelHeight, side)
+            XCTAssertEqual(artwork?.isOriginal, true)
+            let requests = await http.recordedRequests()
+            XCTAssertEqual(requests.count, 1)
+        }
+    }
+
+    func testMissingOriginalFallsBackTo1200ForTheSameRelease() async throws {
         let data = try imageData()
         let http = CoverArtHTTPStub(responses: [
             .success(response(status: 404)), .success(response(data)),
@@ -44,16 +65,40 @@ final class CoverArtArchiveClientTests: XCTestCase {
         let artwork = try await client.frontCover(forReleaseID: releaseID)
 
         XCTAssertEqual(artwork?.data, data)
-        XCTAssertEqual(artwork?.sourceURL.path, "/release/\(releaseID)/front-500")
+        XCTAssertEqual(artwork?.sourceURL.path, "/release/\(releaseID)/front-1200")
+        XCTAssertEqual(artwork?.pixelWidth, 3)
+        XCTAssertEqual(artwork?.pixelHeight, 2)
+        XCTAssertEqual(artwork?.isOriginal, false)
         let requests = await http.recordedRequests()
         XCTAssertEqual(requests.map { $0.url?.path }, [
-            "/release/\(releaseID)/front-1200", "/release/\(releaseID)/front-500",
+            "/release/\(releaseID)/front", "/release/\(releaseID)/front-1200",
+        ])
+    }
+
+    func testMissingOriginalAnd1200FallBackTo500ForTheSameRelease() async throws {
+        let data = try imageData()
+        let http = CoverArtHTTPStub(responses: [
+            .success(response(status: 404)), .success(response(status: 404)),
+            .success(response(data)),
+        ])
+        let client = CoverArtArchiveClient(httpClient: http)
+
+        let artwork = try await client.frontCover(forReleaseID: releaseID)
+
+        XCTAssertEqual(artwork?.data, data)
+        XCTAssertEqual(artwork?.sourceURL.path, "/release/\(releaseID)/front-500")
+        XCTAssertEqual(artwork?.isOriginal, false)
+        let requests = await http.recordedRequests()
+        XCTAssertEqual(requests.map { $0.url?.path }, [
+            "/release/\(releaseID)/front", "/release/\(releaseID)/front-1200",
+            "/release/\(releaseID)/front-500",
         ])
     }
 
     func testMissingFrontCoverReturnsNilWithoutTryingAnotherRelease() async throws {
         let http = CoverArtHTTPStub(responses: [
             .success(response(status: 404)), .success(response(status: 404)),
+            .success(response(status: 404)),
         ])
         let client = CoverArtArchiveClient(httpClient: http)
 
@@ -61,7 +106,7 @@ final class CoverArtArchiveClientTests: XCTestCase {
 
         XCTAssertNil(artwork)
         let requests = await http.recordedRequests()
-        XCTAssertEqual(requests.count, 2)
+        XCTAssertEqual(requests.count, 3)
         XCTAssertTrue(requests.allSatisfy { $0.url?.path.hasPrefix("/release/\(releaseID)/") == true })
     }
 
@@ -110,7 +155,10 @@ final class CoverArtArchiveClientTests: XCTestCase {
         ]
         for (index, item) in cases.enumerated() {
             let (data, expectedError) = item
-            let http = CoverArtHTTPStub(responses: [.success(response(data))])
+            let http = CoverArtHTTPStub(responses: [
+                .success(response(data)), .success(response(status: 404)),
+                .success(response(status: 404)),
+            ])
             let client = CoverArtArchiveClient(httpClient: http)
             do {
                 _ = try await client.frontCover(forReleaseID: releaseID)
@@ -119,7 +167,27 @@ final class CoverArtArchiveClientTests: XCTestCase {
                 XCTAssertEqual(error as? CoverArtArchiveError, expectedError)
             }
             let requests = await http.recordedRequests()
-            XCTAssertEqual(requests.count, 1)
+            XCTAssertEqual(requests.count, 3)
+        }
+    }
+
+    func testInvalidOriginalFallsBackToValidatedThumbnail() async throws {
+        let data = try imageData(width: 1_200, height: 1_200)
+        for original in [Data("Not an image".utf8), Data([0xff, 0xd8, 0xff, 0x00])] {
+            let http = CoverArtHTTPStub(responses: [
+                .success(response(original)), .success(response(data)),
+            ])
+            let client = CoverArtArchiveClient(httpClient: http)
+
+            let artwork = try await client.frontCover(forReleaseID: releaseID)
+
+            XCTAssertEqual(artwork?.data, data)
+            XCTAssertEqual(artwork?.sourceURL.path, "/release/\(releaseID)/front-1200")
+            XCTAssertEqual(artwork?.pixelWidth, 1_200)
+            XCTAssertEqual(artwork?.pixelHeight, 1_200)
+            XCTAssertEqual(artwork?.isOriginal, false)
+            let requests = await http.recordedRequests()
+            XCTAssertEqual(requests.count, 2)
         }
     }
 
@@ -129,7 +197,9 @@ final class CoverArtArchiveClientTests: XCTestCase {
             .failure(MusicBrainzError.responseTooLarge),
         ]
         for result in cases {
-            let http = CoverArtHTTPStub(responses: [result])
+            let http = CoverArtHTTPStub(responses: [
+                result, .success(response(status: 404)), .success(response(status: 404)),
+            ])
             let client = CoverArtArchiveClient(httpClient: http)
             do {
                 _ = try await client.frontCover(forReleaseID: releaseID)
@@ -137,13 +207,18 @@ final class CoverArtArchiveClientTests: XCTestCase {
             } catch {
                 XCTAssertEqual(error as? CoverArtArchiveError, .responseTooLarge)
             }
+            let requests = await http.recordedRequests()
+            XCTAssertEqual(requests.count, 3)
         }
     }
 
     func testRejectsImagesOverDimensionAndPixelLimits() async throws {
-        for (width, height) in [(4_097, 1), (3_000, 3_000)] {
+        for (width, height) in [(4_097, 1), (1, 4_097)] {
             let data = try imageData(width: width, height: height)
-            let http = CoverArtHTTPStub(responses: [.success(response(data))])
+            let http = CoverArtHTTPStub(responses: [
+                .success(response(data)), .success(response(status: 404)),
+                .success(response(status: 404)),
+            ])
             let client = CoverArtArchiveClient(httpClient: http)
             do {
                 _ = try await client.frontCover(forReleaseID: releaseID)
@@ -152,6 +227,49 @@ final class CoverArtArchiveClientTests: XCTestCase {
                 XCTAssertEqual(error as? CoverArtArchiveError, .imageDimensionsTooLarge)
             }
         }
+    }
+
+    func testOversizedOriginalFallsBackAfterByteAndDimensionLimits() async throws {
+        let data = try imageData(width: 500, height: 400)
+        let oversizedDimension = try imageData(width: 4_097, height: 1)
+        let oversizedResponses: [Result<HTTPResponse, Error>] = [
+            .success(response(Data(repeating: 0, count: HTTPResponse.maximumDataSize + 1))),
+            .failure(MusicBrainzError.responseTooLarge),
+            .success(response(oversizedDimension)),
+        ]
+        for oversized in oversizedResponses {
+            let http = CoverArtHTTPStub(responses: [
+                oversized, .success(response(oversizedDimension)), .success(response(data)),
+            ])
+            let client = CoverArtArchiveClient(httpClient: http)
+
+            let artwork = try await client.frontCover(forReleaseID: releaseID)
+
+            XCTAssertEqual(artwork?.data, data)
+            XCTAssertEqual(artwork?.sourceURL.path, "/release/\(releaseID)/front-500")
+            XCTAssertEqual(artwork?.pixelWidth, 500)
+            XCTAssertEqual(artwork?.pixelHeight, 400)
+            XCTAssertEqual(artwork?.provider, .coverArtArchive)
+            XCTAssertEqual(artwork?.isOriginal, false)
+            let requests = await http.recordedRequests()
+            XCTAssertEqual(requests.map { $0.url?.path }, [
+                "/release/\(releaseID)/front", "/release/\(releaseID)/front-1200",
+                "/release/\(releaseID)/front-500",
+            ])
+        }
+    }
+
+    func testTransportFailuresDoNotFallBack() async {
+        let http = CoverArtHTTPStub(responses: [.failure(URLError(.timedOut))])
+        let client = CoverArtArchiveClient(httpClient: http)
+        do {
+            _ = try await client.frontCover(forReleaseID: releaseID)
+            XCTFail("Expected transport failure")
+        } catch {
+            XCTAssertEqual((error as? URLError)?.code, .timedOut)
+        }
+        let requests = await http.recordedRequests()
+        XCTAssertEqual(requests.count, 1)
     }
 
     func testTransportCancellationPropagatesAsCancellation() async {
@@ -164,6 +282,8 @@ final class CoverArtArchiveClientTests: XCTestCase {
             } catch {
                 XCTAssertTrue(error is CancellationError)
             }
+            let requests = await http.recordedRequests()
+            XCTAssertEqual(requests.count, 1)
         }
     }
 

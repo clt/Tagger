@@ -46,9 +46,29 @@ struct AutoTagCandidate: Identifiable, Equatable, Sendable {
     let preview: AutoTagValues
 }
 
-struct AutoTagArtwork: Equatable, Sendable {
+enum AutoTagArtworkSource: Equatable, Sendable {
+    case coverArtArchive
+    case appleCatalog
+
+    var displayName: String {
+        switch self {
+        case .coverArtArchive: "Cover Art Archive"
+        case .appleCatalog: "Apple Music"
+        }
+    }
+}
+
+struct AutoTagArtwork: Identifiable, Equatable, Sendable {
     let data: Data
     let sourceURL: URL
+    var provider: AutoTagArtworkSource = .coverArtArchive
+    var pixelWidth: Int? = nil
+    var pixelHeight: Int? = nil
+    var title: String? = nil
+    var subtitle: String? = nil
+    var isOriginal = false
+
+    var id: String { sourceURL.absoluteString }
 }
 
 struct AutoTagProposal: Equatable, Sendable {
@@ -56,6 +76,7 @@ struct AutoTagProposal: Equatable, Sendable {
     let values: AutoTagValues
     var artwork: AutoTagArtwork? = nil
     var artworkMessage: String? = nil
+    var artworkAlternatives: [AutoTagArtwork] = []
 }
 
 struct AutoTagValues: Equatable, Sendable {
@@ -165,9 +186,10 @@ struct AutoTagReviewRow: Identifiable, Equatable, Sendable {
 }
 
 struct AutoTagReviewDraft: Equatable, Sendable {
-    let proposal: AutoTagProposal
+    var proposal: AutoTagProposal
     var selectedFields: Set<AutoTagField>
     var isArtworkSelected: Bool
+    var selectedArtworkID: String?
 
     init(proposal: AutoTagProposal, currentDraft: ID3TagDraft) {
         self.proposal = proposal
@@ -177,6 +199,17 @@ struct AutoTagReviewDraft: Equatable, Sendable {
                 .map(\.field)
         )
         isArtworkSelected = currentDraft.artworkData == nil && proposal.artwork != nil
+        selectedArtworkID = proposal.artwork?.id
+    }
+
+    var availableArtwork: [AutoTagArtwork] {
+        var identifiers: Set<String> = []
+        return ((proposal.artwork.map { [$0] } ?? []) + proposal.artworkAlternatives)
+            .filter { identifiers.insert($0.id).inserted }
+    }
+
+    var selectedArtwork: AutoTagArtwork? {
+        availableArtwork.first { $0.id == selectedArtworkID }
     }
 
     func rows(comparedTo currentDraft: ID3TagDraft) -> [AutoTagReviewRow] {
@@ -184,7 +217,7 @@ struct AutoTagReviewDraft: Equatable, Sendable {
     }
 
     func hasArtworkChange(comparedTo currentDraft: ID3TagDraft) -> Bool {
-        guard let artwork = proposal.artwork else { return false }
+        guard let artwork = selectedArtwork else { return false }
         return artwork.data != currentDraft.artworkData
     }
 
@@ -196,7 +229,7 @@ struct AutoTagReviewDraft: Equatable, Sendable {
                   !suggestion.isEmpty else { continue }
             field.set(suggestion, in: &updated)
         }
-        if isArtworkSelected, let artwork = proposal.artwork {
+        if isArtworkSelected, let artwork = selectedArtwork {
             updated.artworkData = artwork.data
         }
         return updated

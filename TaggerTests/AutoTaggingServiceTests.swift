@@ -3,6 +3,22 @@ import XCTest
 @testable import Tagger
 
 final class AutoTaggingServiceTests: XCTestCase {
+    func testAppleLookupIsSeparateFromTextAndCoverResolution() async throws {
+        let apple = AppleArtworkServiceStub()
+        let service = AutoTaggingService(musicBrainz: AutoTagMusicBrainzStub(),
+            coverArt: AutoTagCoverArtStub(), appleArtwork: apple)
+        let outcome = try await service.search(request())
+        let local = try XCTUnwrap(outcome.candidates.first)
+        _ = try await service.resolve(local, for: request())
+        _ = try await service.resolve(candidate(releaseID: releaseID), for: request())
+        let initialCalls = await apple.callCount()
+        XCTAssertEqual(initialCalls, 0)
+        let result = try await service.searchAppleArtwork(artist: "Portishead", album: "Dummy")
+        let calls = await apple.callCount()
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(result.artworks.first?.title, "Dummy")
+    }
+
     func testFilenameSearchAndResolutionNeverContactMusicBrainz() async throws {
         let remote = AutoTagMusicBrainzStub()
         let coverArt = AutoTagCoverArtStub()
@@ -322,4 +338,15 @@ private actor AutoTagCoverArtStub: CoverArtFetching {
     }
 
     func recordedReleaseIDs() -> [String] { releaseIDs }
+}
+
+private actor AppleArtworkServiceStub: AppleArtworkSearching {
+    private var calls = 0
+    func callCount() -> Int { calls }
+    func search(artist: String, album: String) async throws -> ArtworkSearchOutcome {
+        calls += 1
+        return ArtworkSearchOutcome(artworks: [AutoTagArtwork(data: Data([1]),
+            sourceURL: URL(string: "https://music.apple.com/us/album/dummy/123")!,
+            provider: .appleCatalog, title: album, subtitle: artist)], warningMessage: nil)
+    }
 }
