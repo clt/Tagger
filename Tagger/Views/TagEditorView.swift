@@ -120,6 +120,8 @@ struct TagEditorView: View {
                 }
             }
             .formStyle(.grouped)
+            // Keep the scrollable form's intrinsic height out of the window minimum.
+            .frame(minHeight: 0, maxHeight: .infinity)
             .disabled(session.isSaving)
 
             Divider()
