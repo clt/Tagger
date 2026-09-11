@@ -11,6 +11,7 @@ struct TaggerApp: App {
             TaggerWindow(autoTaggingService: autoTaggingService)
         }
         .defaultSize(width: 1_240, height: 780)
+        .windowResizability(.contentMinSize)
         .commands {
             TaggerCommands()
         }
@@ -28,6 +29,8 @@ private struct TaggerWindow: View {
 
     var body: some View {
         ContentView(session: session)
+            .frame(minWidth: 900, minHeight: 420)
+            .background { WindowVisibleFrameGuard() }
             .background {
                 WindowCloseGuard(session: session, isDirty: session.isDirty)
             }

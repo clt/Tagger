@@ -73,6 +73,10 @@ share an application-wide rate limiter. You can use filename suggestions while a
 search is pending or unavailable. MusicBrainz core metadata is made available
 under CC0; MusicBrainz remains the source of the lookup results.
 
+The main window resizes in both directions. Batch selection keeps a bounded header
+and scrollable editor, and restored or resized windows fit the current screen’s
+usable area above the Dock and below the menu bar.
+
 ## Build and run
 
 The project requires a Swift 6.2-or-newer Xcode toolchain. It currently defaults

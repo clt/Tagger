@@ -101,6 +101,8 @@ struct BatchTagEditorView: View {
                 }
             }
             .formStyle(.grouped)
+            // Keep the scrollable form's intrinsic height out of the window minimum.
+            .frame(minHeight: 0, maxHeight: .infinity)
             .disabled(session.isSaving)
 
             Divider()
@@ -122,7 +124,7 @@ struct BatchTagEditorView: View {
             Text("Only fields marked Apply will be changed in every selected file. An applied empty field will be removed from all of them.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(3)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()

@@ -52,10 +52,12 @@
 		DA5257797645876D91C5BAAC /* M4AContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67959527602771E0967DE32D /* M4AContainer.swift */; };
 		DED97CB1B78B0FF7861E2F6D /* LibrarySessionBatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */; };
 		E31879185A9AE9529AB37A9A /* AudioMarker-NOTICE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 72AD5C31D27FA63F037BF344 /* AudioMarker-NOTICE.txt */; };
+		E359ABE8B7CB54E7FD4B73F9 /* WindowFrameBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCA85E7BF5D6B55351B767DE /* WindowFrameBoundsTests.swift */; };
 		E3B619B84D1FF757CD3994BA /* FilenameDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */; };
 		E568E50E56BE96DE1FA876E0 /* AutoTagReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCEBF5D07ABF747D7735E039 /* AutoTagReviewView.swift */; };
 		F0315B8DB66AA618A296F15A /* AutoTaggingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C642273FBC3892EDC55931 /* AutoTaggingServiceTests.swift */; };
 		F46E0186908F2396826D1FDC /* AudioMarker in Frameworks */ = {isa = PBXBuildFile; productRef = A7933891FEDAB0A9CA08B345 /* AudioMarker */; };
+		F99808E0A2044868C02CC134 /* WindowVisibleFrameGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BB1504CDBEC470180AC737 /* WindowVisibleFrameGuard.swift */; };
 		FA33F4FA93C48ADB3C6336A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B372790716A9F321A4B9E6B /* ContentView.swift */; };
 		FE2B92185E1FE5D07930C6A2 /* CoverArtArchiveClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6AE98BA33A96A929A753A3 /* CoverArtArchiveClient.swift */; };
 /* End PBXBuildFile section */
@@ -113,6 +115,7 @@
 		B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySessionFilenameTests.swift; sourceTree = "<group>"; };
 		B5AB392A9ED99171C048A5CE /* FolderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPicker.swift; sourceTree = "<group>"; };
 		B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryListView.swift; sourceTree = "<group>"; };
+		BCA85E7BF5D6B55351B767DE /* WindowFrameBoundsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowFrameBoundsTests.swift; sourceTree = "<group>"; };
 		C6805887F8EC2C0075F8441E /* Tagger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tagger.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7685E21271AFB56F048DDFD /* FilenameDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilenameDraftTests.swift; sourceTree = "<group>"; };
 		CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3TagDraftTests.swift; sourceTree = "<group>"; };
@@ -121,6 +124,7 @@
 		DCEBF5D07ABF747D7735E039 /* AutoTagReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTagReviewView.swift; sourceTree = "<group>"; };
 		DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemContentsTests.swift; sourceTree = "<group>"; };
 		E432006378DB65229FF3C8FC /* LibrarySession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySession.swift; sourceTree = "<group>"; };
+		F9BB1504CDBEC470180AC737 /* WindowVisibleFrameGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowVisibleFrameGuard.swift; sourceTree = "<group>"; };
 		FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerCommands.swift; sourceTree = "<group>"; };
 		FD9067D696D65D34C566BCED /* PresentedError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentedError.swift; sourceTree = "<group>"; };
 		FEB5E064E72B6661ED94EBA9 /* M4AMetadataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AMetadataService.swift; sourceTree = "<group>"; };
@@ -200,6 +204,7 @@
 				47881D1CBD03F9FE8C223B80 /* Tagger.entitlements */,
 				FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */,
 				518AFACEEB8F8BDA6A1FF6DB /* WindowCloseGuard.swift */,
+				F9BB1504CDBEC470180AC737 /* WindowVisibleFrameGuard.swift */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -273,6 +278,7 @@
 				B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */,
 				AF0C70A3BB1D5472C83BE9D1 /* M4AMetadataServiceTests.swift */,
 				2D83A3B9DCAF3F2962D7A2D7 /* MusicBrainzClientTests.swift */,
+				BCA85E7BF5D6B55351B767DE /* WindowFrameBoundsTests.swift */,
 			);
 			path = TaggerTests;
 			sourceTree = "<group>";
@@ -391,6 +397,7 @@
 				301738DCDD466981EE462B6D /* LibrarySessionFilenameTests.swift in Sources */,
 				0EB753F04ADF3AB766A2B98E /* M4AMetadataServiceTests.swift in Sources */,
 				927EA3B0863426C4626A0965 /* MusicBrainzClientTests.swift in Sources */,
+				E359ABE8B7CB54E7FD4B73F9 /* WindowFrameBoundsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,6 +437,7 @@
 				6A164EC4B4647251F04AAB20 /* TaggerApp.swift in Sources */,
 				1C0BFD415EA40A2A7CF1F13E /* TaggerCommands.swift in Sources */,
 				91205BB46FED9F966388851C /* WindowCloseGuard.swift in Sources */,
+				F99808E0A2044868C02CC134 /* WindowVisibleFrameGuard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
