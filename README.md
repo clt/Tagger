@@ -7,6 +7,7 @@ Tagger is a small native macOS app for browsing folders of MP3 and M4A files and
 ## Current feature set
 
 - Three-column folder tree, file list, and tag editor
+- Folder summary with album cover, album, artist, and audio-file count; updates from review drafts before Save
 - Single-file editing plus Finder-style multi-selection for batch editing
 - Single-file filename editing with the original extension preserved
 - Review-first tag suggestions from file names and MusicBrainz, with original Cover Art Archive images and optional Apple Music cover choices
@@ -112,6 +113,8 @@ local ad-hoc signing. Choose your own reverse-DNS identifier, development team,
 and distribution signing settings in `project.yml` before sharing the app.
 
 ## Initial-version limitations
+
+The header above the file list and editor summarizes the audio files directly inside the current folder as soon as it opens; subfolders are summarized when you open them. It prefers album artist, falling back to track artist, and shows placeholders for missing or mixed albums, artists, and covers. Unreadable files are counted without blocking browsing. Single-file and applied batch edits update the summary with an Unsaved changes indicator; Revert restores saved values. Folder scans only read local metadata and keep compact cover thumbnails. External file edits are refreshed when the folder is reopened or the file is selected.
 
 Batch editing works on MP3 and M4A files in the currently displayed folder, including mixed selections; use Command-click or Shift-click to select them. Batch saves are sequential, and a failed file does not roll back files already saved. Auto-tag lookup and filename editing are currently single-file only. Auto-tag lookup is text-based and does not fingerprint audio; it proposes title, artist, album, album artist, track, disc, year, and optional front-cover artwork while leaving genre, composer, comments, lyrics, and the filename unchanged. Artwork can also be added, replaced, or removed manually in the draft and is written only on Save. The editor exposes one primary artwork image, one comment, plain lyrics, integer track/disc numbers without totals, and a four-digit year. Saving may collapse multiple artwork, comment, or lyrics variants into the displayed primary value, so test with copies before using irreplaceable files.
 
