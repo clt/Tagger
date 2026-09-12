@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00EAC4F51A23847B8E37C687 /* FolderMetadataSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D78CAA3CF9D185ED2EBEF49 /* FolderMetadataSummary.swift */; };
 		014B82C7B14FFA8E8B81C27E /* AutoTagModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4534AA08257DD09320A20D2E /* AutoTagModels.swift */; };
 		084C5DED5CF48838E143F072 /* ID3TagDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */; };
 		0B4A51C9044332F51BD6679E /* ArtworkImageValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42EAE666E8CE00295CD908ED /* ArtworkImageValidator.swift */; };
@@ -31,7 +32,10 @@
 		5F078055E747BAE04B4DB3D6 /* AppleArtworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF80DAB930DE8ADEC85F250E /* AppleArtworkClient.swift */; };
 		5F43630D935120FC948453FA /* AutoTaggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5524C75B688E3E3DD8700FDB /* AutoTaggingService.swift */; };
 		65903E0109856EBD83291B28 /* FilenameTagInference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568639FD9BEF086685FC0225 /* FilenameTagInference.swift */; };
+		67E1ED45CB41BC2F524A2157 /* FolderMetadataSummaryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0197BFEF6C272298BEBEF09 /* FolderMetadataSummaryServiceTests.swift */; };
 		6A164EC4B4647251F04AAB20 /* TaggerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9851B56C64EE665723A11986 /* TaggerApp.swift */; };
+		6C0B7E414E6552046F0C3912 /* FolderMetadataSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFF4E1DF196E82C14C1754C /* FolderMetadataSummaryView.swift */; };
+		7DF8EB5A71EBDEFAA7BC3F6E /* FolderMetadataSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 878241F5D386FE70172E9C70 /* FolderMetadataSummaryTests.swift */; };
 		7E0C6047061F2F845E3DFFDC /* AppleArtworkClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 946937FC909D2F78ED80B260 /* AppleArtworkClientTests.swift */; };
 		8095A92ADAF7606372A89C08 /* MusicBrainzClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EC6D41C7AF42222A4A0E8B9 /* MusicBrainzClient.swift */; };
 		83CACAC87DF4C72D6F15582E /* LibrarySessionAutoTagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE1622F316288B862116A40 /* LibrarySessionAutoTagTests.swift */; };
@@ -39,6 +43,7 @@
 		927EA3B0863426C4626A0965 /* MusicBrainzClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D83A3B9DCAF3F2962D7A2D7 /* MusicBrainzClientTests.swift */; };
 		9445B29F5F68C20B2F48FC87 /* FilenameDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75135C387FEE0D4E67F5AB84 /* FilenameDraft.swift */; };
 		97365BD6381152DCC8FA797A /* ArtworkEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8531CE2737527A9AB21D4B7E /* ArtworkEditorView.swift */; };
+		9C4AB2691FDCD21A64FEC12C /* LibrarySessionFolderSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F237F79F90362C4D75F51850 /* LibrarySessionFolderSummaryTests.swift */; };
 		ABE324AEDC03F5B011181224 /* FolderAccessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4983CB4857838813832F9A /* FolderAccessService.swift */; };
 		ABF8896163F8BC7BEC9774AA /* FileSystemRenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */; };
 		AEFBB4E2DF1905263921E921 /* AudioMarker-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3163B1524F863E8E6AB7DB21 /* AudioMarker-LICENSE.txt */; };
@@ -46,6 +51,7 @@
 		BC6B26D71DD27F0F7767224B /* CoverArtArchiveClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71604B6464A0F3B1BE604422 /* CoverArtArchiveClientTests.swift */; };
 		C168C46F1DE25C50EB196FD1 /* FilenameTagInferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F66037FEE285B91E068983 /* FilenameTagInferenceTests.swift */; };
 		C72F49F17349C2EF421029ED /* BatchID3TagDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435F24ED0D0B6A9144E932CE /* BatchID3TagDraftTests.swift */; };
+		C9735FF8F8FC522F0129D94C /* FolderMetadataSummaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BCDC3CF22BAAB9E3C9E15BE /* FolderMetadataSummaryService.swift */; };
 		D355B4F69EDD182327E188FB /* BatchArtworkEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57FD6DA3F49A36E44F1A990 /* BatchArtworkEditorView.swift */; };
 		D402F2AFD4E6E8E1E4D73A85 /* ID3MetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */; };
 		D74215A5CDA3DE67A0663A83 /* FileSystemContentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */; };
@@ -77,6 +83,7 @@
 		0EC6D41C7AF42222A4A0E8B9 /* MusicBrainzClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicBrainzClient.swift; sourceTree = "<group>"; };
 		0F6AE98BA33A96A929A753A3 /* CoverArtArchiveClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverArtArchiveClient.swift; sourceTree = "<group>"; };
 		17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID3MetadataServiceTests.swift; sourceTree = "<group>"; };
+		1D78CAA3CF9D185ED2EBEF49 /* FolderMetadataSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderMetadataSummary.swift; sourceTree = "<group>"; };
 		1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemRenameTests.swift; sourceTree = "<group>"; };
 		28CB13A5EE67DDC4A95BD451 /* TaggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D83A3B9DCAF3F2962D7A2D7 /* MusicBrainzClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicBrainzClientTests.swift; sourceTree = "<group>"; };
@@ -103,11 +110,15 @@
 		75135C387FEE0D4E67F5AB84 /* FilenameDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilenameDraft.swift; sourceTree = "<group>"; };
 		79C642273FBC3892EDC55931 /* AutoTaggingServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTaggingServiceTests.swift; sourceTree = "<group>"; };
 		8531CE2737527A9AB21D4B7E /* ArtworkEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkEditorView.swift; sourceTree = "<group>"; };
+		878241F5D386FE70172E9C70 /* FolderMetadataSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderMetadataSummaryTests.swift; sourceTree = "<group>"; };
+		8AFF4E1DF196E82C14C1754C /* FolderMetadataSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderMetadataSummaryView.swift; sourceTree = "<group>"; };
 		8B372790716A9F321A4B9E6B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8BCDC3CF22BAAB9E3C9E15BE /* FolderMetadataSummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderMetadataSummaryService.swift; sourceTree = "<group>"; };
 		9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySessionBatchTests.swift; sourceTree = "<group>"; };
 		93F480128043CF43CA40984F /* FileSystemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemService.swift; sourceTree = "<group>"; };
 		946937FC909D2F78ED80B260 /* AppleArtworkClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleArtworkClientTests.swift; sourceTree = "<group>"; };
 		9851B56C64EE665723A11986 /* TaggerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerApp.swift; sourceTree = "<group>"; };
+		A0197BFEF6C272298BEBEF09 /* FolderMetadataSummaryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderMetadataSummaryServiceTests.swift; sourceTree = "<group>"; };
 		A21627B698343C555010AC37 /* TagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditorView.swift; sourceTree = "<group>"; };
 		A57FD6DA3F49A36E44F1A990 /* BatchArtworkEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchArtworkEditorView.swift; sourceTree = "<group>"; };
 		AF0C70A3BB1D5472C83BE9D1 /* M4AMetadataServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AMetadataServiceTests.swift; sourceTree = "<group>"; };
@@ -124,6 +135,7 @@
 		DCEBF5D07ABF747D7735E039 /* AutoTagReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTagReviewView.swift; sourceTree = "<group>"; };
 		DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystemContentsTests.swift; sourceTree = "<group>"; };
 		E432006378DB65229FF3C8FC /* LibrarySession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySession.swift; sourceTree = "<group>"; };
+		F237F79F90362C4D75F51850 /* LibrarySessionFolderSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySessionFolderSummaryTests.swift; sourceTree = "<group>"; };
 		F9BB1504CDBEC470180AC737 /* WindowVisibleFrameGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowVisibleFrameGuard.swift; sourceTree = "<group>"; };
 		FCCE6DEE3E56EED25942CA83 /* TaggerCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggerCommands.swift; sourceTree = "<group>"; };
 		FD9067D696D65D34C566BCED /* PresentedError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentedError.swift; sourceTree = "<group>"; };
@@ -171,6 +183,7 @@
 				3DBE92EB2514231DD8B9A085 /* BatchID3TagDraft.swift */,
 				6A1B856516A64C91534AD0F5 /* DirectoryEntry.swift */,
 				75135C387FEE0D4E67F5AB84 /* FilenameDraft.swift */,
+				1D78CAA3CF9D185ED2EBEF49 /* FolderMetadataSummary.swift */,
 				D36F60F83C829E5F02A3755D /* ID3TagDraft.swift */,
 				FD9067D696D65D34C566BCED /* PresentedError.swift */,
 			);
@@ -188,6 +201,7 @@
 				568639FD9BEF086685FC0225 /* FilenameTagInference.swift */,
 				93F480128043CF43CA40984F /* FileSystemService.swift */,
 				6F4983CB4857838813832F9A /* FolderAccessService.swift */,
+				8BCDC3CF22BAAB9E3C9E15BE /* FolderMetadataSummaryService.swift */,
 				B5AB392A9ED99171C048A5CE /* FolderPicker.swift */,
 				4CDAFBFC8B84D5188B049932 /* HTTPClient.swift */,
 				D5FC5019EBFA379F35DFAE9D /* ID3MetadataService.swift */,
@@ -235,6 +249,7 @@
 				0D844078576040C9470DA02E /* BatchTagEditorView.swift */,
 				8B372790716A9F321A4B9E6B /* ContentView.swift */,
 				B971CCF7CF368027FBFC5752 /* DirectoryListView.swift */,
+				8AFF4E1DF196E82C14C1754C /* FolderMetadataSummaryView.swift */,
 				4330C8817C3A820A2B7FF6BE /* FolderTreeView.swift */,
 				A21627B698343C555010AC37 /* TagEditorView.swift */,
 			);
@@ -271,11 +286,14 @@
 				41F66037FEE285B91E068983 /* FilenameTagInferenceTests.swift */,
 				DE65FF485D649CECD3E3296B /* FileSystemContentsTests.swift */,
 				1FAE42D428FEA2BFE9AF7BB3 /* FileSystemRenameTests.swift */,
+				A0197BFEF6C272298BEBEF09 /* FolderMetadataSummaryServiceTests.swift */,
+				878241F5D386FE70172E9C70 /* FolderMetadataSummaryTests.swift */,
 				17BB869E8055157A4BCE49A3 /* ID3MetadataServiceTests.swift */,
 				CA57B410AE0375F3CB4B5D2D /* ID3TagDraftTests.swift */,
 				2FE1622F316288B862116A40 /* LibrarySessionAutoTagTests.swift */,
 				9241EE7BFEB69D675F9454B4 /* LibrarySessionBatchTests.swift */,
 				B451189FB3046C673468F1F2 /* LibrarySessionFilenameTests.swift */,
+				F237F79F90362C4D75F51850 /* LibrarySessionFolderSummaryTests.swift */,
 				AF0C70A3BB1D5472C83BE9D1 /* M4AMetadataServiceTests.swift */,
 				2D83A3B9DCAF3F2962D7A2D7 /* MusicBrainzClientTests.swift */,
 				BCA85E7BF5D6B55351B767DE /* WindowFrameBoundsTests.swift */,
@@ -390,11 +408,14 @@
 				ABF8896163F8BC7BEC9774AA /* FileSystemRenameTests.swift in Sources */,
 				E3B619B84D1FF757CD3994BA /* FilenameDraftTests.swift in Sources */,
 				C168C46F1DE25C50EB196FD1 /* FilenameTagInferenceTests.swift in Sources */,
+				67E1ED45CB41BC2F524A2157 /* FolderMetadataSummaryServiceTests.swift in Sources */,
+				7DF8EB5A71EBDEFAA7BC3F6E /* FolderMetadataSummaryTests.swift in Sources */,
 				2008E8F474A058A124D9184E /* ID3MetadataServiceTests.swift in Sources */,
 				084C5DED5CF48838E143F072 /* ID3TagDraftTests.swift in Sources */,
 				83CACAC87DF4C72D6F15582E /* LibrarySessionAutoTagTests.swift in Sources */,
 				DED97CB1B78B0FF7861E2F6D /* LibrarySessionBatchTests.swift in Sources */,
 				301738DCDD466981EE462B6D /* LibrarySessionFilenameTests.swift in Sources */,
+				9C4AB2691FDCD21A64FEC12C /* LibrarySessionFolderSummaryTests.swift in Sources */,
 				0EB753F04ADF3AB766A2B98E /* M4AMetadataServiceTests.swift in Sources */,
 				927EA3B0863426C4626A0965 /* MusicBrainzClientTests.swift in Sources */,
 				E359ABE8B7CB54E7FD4B73F9 /* WindowFrameBoundsTests.swift in Sources */,
@@ -423,6 +444,9 @@
 				9445B29F5F68C20B2F48FC87 /* FilenameDraft.swift in Sources */,
 				65903E0109856EBD83291B28 /* FilenameTagInference.swift in Sources */,
 				ABE324AEDC03F5B011181224 /* FolderAccessService.swift in Sources */,
+				00EAC4F51A23847B8E37C687 /* FolderMetadataSummary.swift in Sources */,
+				C9735FF8F8FC522F0129D94C /* FolderMetadataSummaryService.swift in Sources */,
+				6C0B7E414E6552046F0C3912 /* FolderMetadataSummaryView.swift in Sources */,
 				28B662ABAD15D180D2DFB1D4 /* FolderPicker.swift in Sources */,
 				2C087BDB24F2CF6CF7729F9A /* FolderTreeView.swift in Sources */,
 				4FD62F19EC03C1587A8848E4 /* HTTPClient.swift in Sources */,
