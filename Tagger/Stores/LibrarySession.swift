@@ -15,11 +15,26 @@ final class LibrarySession {
     var loadingChildFolders: Set<URL> = []
 
     var loadedTag: LoadedID3Tag?
-    var draft: ID3TagDraft?
-    var originalDraft: ID3TagDraft?
+    var draft: ID3TagDraft? { didSet { refreshDraftSummaryArtwork() } }
+    var originalDraft: ID3TagDraft? { didSet { refreshDraftSummaryArtwork() } }
     var filenameDraft: FilenameDraft?
-    var loadedTagsByURL: [URL: LoadedID3Tag] = [:]
-    var batchDraft: BatchID3TagDraft?
+    var loadedTagsByURL: [URL: LoadedID3Tag] = [:] {
+        didSet { refreshPersistedSummaryItems(previous: oldValue) }
+    }
+    var batchDraft: BatchID3TagDraft? { didSet { refreshDraftSummaryArtwork() } }
+
+    private(set) var isLoadingFolderSummary = false
+    private var folderSummaryItems: [URL: FolderMetadataItem] = [:]
+    private var unreadableSummaryURLs: Set<URL> = []
+    private var draftSummaryArtwork: FolderSummaryArtwork?
+    @ObservationIgnored private let folderSummarizer: any FolderMetadataSummarizing
+    @ObservationIgnored private var folderSummaryTask: Task<Void, Never>?
+    @ObservationIgnored private var persistedSummaryTasks: [URL: Task<Void, Never>] = [:]
+    @ObservationIgnored private var folderSummaryGeneration = 0
+    @ObservationIgnored private var summaryVersions: [URL: Int] = [:]
+    @ObservationIgnored private var draftArtworkTask: Task<Void, Never>?
+    @ObservationIgnored private var draftArtworkSource: Data?
+    @ObservationIgnored private var draftArtworkGeneration = 0
 
     var isShowingUnsavedChangesAlert = false
     var isLoadingDirectory = false
@@ -63,16 +78,61 @@ final class LibrarySession {
         fileRenamer: (any FileRenaming)? = nil,
         metadataService: any ID3MetadataServicing = AudioMetadataService(),
         autoTaggingService: any AutoTaggingServicing = AutoTaggingService(),
+        folderSummarizer: any FolderMetadataSummarizing = FolderMetadataSummaryService(),
         folderAccess: FolderAccessService = FolderAccessService(),
         folderPicker: FolderPicker = FolderPicker()
     ) {
         self.fileSystem = fileSystem
         self.fileRenamer = fileRenamer ?? fileSystem
         self.metadataService = metadataService
+        self.folderSummarizer = folderSummarizer
         self.autoTaggingService = autoTaggingService
         self.folderAccess = folderAccess
         self.folderPicker = folderPicker
     }
+
+    /// The current folder, with selected review drafts layered over compact saved values.
+    var folderMetadataSummary: FolderMetadataSummary {
+        let urls = entries.filter { $0.isAudioFile }.map(\.url)
+        let selectedURLs = Set(selectedFileURLs)
+        let items = urls.compactMap { url -> FolderMetadataItem? in
+            guard let loaded = loadedTagsByURL[url] else { return folderSummaryItems[url] }
+            var artist = loaded.draft.artist
+            var albumArtist = loaded.draft.albumArtist
+            var album = loaded.draft.album
+            var artwork = folderSummaryItems[url]?.artwork
+            if selectedFileURLs.count == 1, selectedFileURLs.first == url, let draft {
+                artist = draft.artist
+                albumArtist = draft.albumArtist
+                album = draft.album
+                if draft.artworkData == nil {
+                    artwork = nil
+                } else if draft.artworkData != loaded.draft.artworkData {
+                    artwork = draftSummaryArtwork
+                }
+            } else if selectedURLs.contains(url), let batchDraft {
+                artist = batchDraft.artist.applying(to: artist)
+                albumArtist = batchDraft.albumArtist.applying(to: albumArtist)
+                album = batchDraft.album.applying(to: album)
+                switch batchDraft.artworkData.edit {
+                case .unchanged: break
+                case .remove: artwork = nil
+                case .replace: artwork = draftSummaryArtwork
+                }
+            }
+            albumArtist = FolderMetadataSummary.normalized(albumArtist)
+            return FolderMetadataItem(
+                artist: albumArtist.isEmpty ? FolderMetadataSummary.normalized(artist) : albumArtist,
+                album: FolderMetadataSummary.normalized(album), artwork: artwork
+            )
+        }
+        return FolderMetadataSummary(
+            items: items, fileCount: urls.count,
+            unreadableCount: unreadableSummaryURLs.intersection(urls).subtracting(loadedTagsByURL.keys).count
+        )
+    }
+
+    var folderSummaryHasUnsavedChanges: Bool { hasUnsavedTagChanges }
 
     var isDirty: Bool {
         hasUnsavedTagChanges || hasUnsavedFilenameChange
@@ -797,6 +857,11 @@ final class LibrarySession {
             entries.sort(by: DirectoryEntry.areInDisplayOrder)
         }
 
+        folderSummaryItems[destinationURL] = folderSummaryItems.removeValue(forKey: sourceURL)
+        unreadableSummaryURLs.remove(sourceURL)
+        summaryVersions[sourceURL, default: 0] += 1
+        persistedSummaryTasks.removeValue(forKey: sourceURL)?.cancel()
+
         selectedEntryURLs.remove(sourceURL)
         selectedEntryURLs.insert(destinationURL)
         selectedFileURLs = [destinationURL]
@@ -921,6 +986,7 @@ final class LibrarySession {
 
     private func loadDirectory(_ url: URL) {
         directoryLoadTask?.cancel()
+        resetFolderSummary()
         isLoadingDirectory = true
         entries = []
         let generation = libraryGeneration
@@ -933,6 +999,7 @@ final class LibrarySession {
                       generation == libraryGeneration,
                       selectedFolderURL == url else { return }
                 entries = loadedEntries
+                loadFolderSummary()
             } catch is CancellationError {
                 // A newer directory selection replaced this request.
             } catch {
@@ -945,6 +1012,92 @@ final class LibrarySession {
             if generation == libraryGeneration, selectedFolderURL == url {
                 isLoadingDirectory = false
             }
+        }
+    }
+
+    private func resetFolderSummary() {
+        folderSummaryGeneration += 1
+        folderSummaryTask?.cancel()
+        folderSummaryTask = nil
+        persistedSummaryTasks.values.forEach { $0.cancel() }
+        persistedSummaryTasks = [:]
+        summaryVersions = [:]
+        folderSummaryItems = [:]
+        unreadableSummaryURLs = []
+        isLoadingFolderSummary = false
+    }
+
+    private func loadFolderSummary() {
+        let urls = entries.filter { $0.isAudioFile }.map(\.url)
+        let generation = folderSummaryGeneration
+        isLoadingFolderSummary = !urls.isEmpty
+        folderSummaryTask = Task { [weak self] in
+            guard let self else { return }
+            for url in urls {
+                guard !Task.isCancelled, generation == folderSummaryGeneration else { return }
+                guard entries.contains(where: { $0.url == url }) else { continue }
+                let version = summaryVersions[url, default: 0]
+                do {
+                    let loaded = try await metadataService.load(from: url)
+                    let item = await folderSummarizer.item(from: loaded.draft)
+                    guard !Task.isCancelled, generation == folderSummaryGeneration else { return }
+                    // A selected-file reload or save is newer than this background read.
+                    if version == summaryVersions[url, default: 0] {
+                        folderSummaryItems[url] = item
+                        unreadableSummaryURLs.remove(url)
+                    }
+                } catch {
+                    guard !Task.isCancelled, generation == folderSummaryGeneration else { return }
+                    if version == summaryVersions[url, default: 0] {
+                        unreadableSummaryURLs.insert(url)
+                    }
+                }
+            }
+            if generation == folderSummaryGeneration { isLoadingFolderSummary = false }
+        }
+    }
+
+    private func refreshPersistedSummaryItems(previous: [URL: LoadedID3Tag]) {
+        let currentURLs = Set(entries.map(\.url))
+        for (url, loaded) in loadedTagsByURL where currentURLs.contains(url) {
+            guard previous[url]?.draft != loaded.draft || folderSummaryItems[url] == nil else { continue }
+            summaryVersions[url, default: 0] += 1
+            let version = summaryVersions[url, default: 0]
+            let generation = folderSummaryGeneration
+            persistedSummaryTasks[url]?.cancel()
+            persistedSummaryTasks[url] = Task { [weak self] in
+                guard let self else { return }
+                let item = await folderSummarizer.item(from: loaded.draft)
+                guard !Task.isCancelled, generation == folderSummaryGeneration,
+                      version == summaryVersions[url] else { return }
+                folderSummaryItems[url] = item
+                unreadableSummaryURLs.remove(url)
+                persistedSummaryTasks[url] = nil
+            }
+        }
+    }
+
+    private func refreshDraftSummaryArtwork() {
+        let source: Data?
+        if let draft, draft.artworkData != originalDraft?.artworkData {
+            source = draft.artworkData
+        } else if let batchDraft, case let .replace(data) = batchDraft.artworkData.edit {
+            source = data
+        } else {
+            source = nil
+        }
+        guard source != draftArtworkSource else { return }
+        draftArtworkSource = source
+        draftArtworkGeneration += 1
+        let generation = draftArtworkGeneration
+        draftArtworkTask?.cancel()
+        draftSummaryArtwork = nil
+        guard let source else { return }
+        draftArtworkTask = Task { [weak self] in
+            guard let self else { return }
+            let item = await folderSummarizer.item(from: ID3TagDraft(artworkData: source))
+            guard !Task.isCancelled, generation == draftArtworkGeneration else { return }
+            draftSummaryArtwork = item.artwork
         }
     }
 
@@ -1029,6 +1182,7 @@ final class LibrarySession {
     }
 
     private func cancelOutstandingWork() {
+        resetFolderSummary()
         directoryLoadTask?.cancel()
         tagLoadTask?.cancel()
         resetAutoTagging(closeSheet: true)

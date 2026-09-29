@@ -7,12 +7,33 @@ struct ContentView: View {
         NavigationSplitView {
             FolderTreeView(session: session)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 230, max: 320)
-        } content: {
-            DirectoryListView(session: session)
-                .navigationSplitViewColumnWidth(min: 240, ideal: 320, max: 460)
         } detail: {
-            TagEditorView(session: session)
-                .navigationSplitViewColumnWidth(min: 430, ideal: 590)
+            GeometryReader { geometry in
+                VStack(alignment: .leading, spacing: 0) {
+                    if session.rootURL != nil {
+                        FolderMetadataSummaryView(
+                            summary: session.folderMetadataSummary,
+                            isLoading: session.isLoadingDirectory || session.isLoadingFolderSummary,
+                            hasUnsavedChanges: session.folderSummaryHasUnsavedChanges,
+                            artworkSize: min(128, max(88, geometry.size.height * 0.18))
+                        )
+                        Divider()
+                    }
+
+                    HSplitView {
+                        DirectoryListView(session: session)
+                            .frame(minWidth: 240, idealWidth: 320, maxWidth: 460)
+                            .frame(maxHeight: .infinity)
+                        TagEditorView(session: session)
+                            .frame(minWidth: 430, idealWidth: 590, maxWidth: .infinity)
+                            .frame(maxHeight: .infinity)
+                    }
+                    .frame(width: geometry.size.width)
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
+            }
+            .navigationSplitViewColumnWidth(min: 671, ideal: 910)
+            .navigationTitle(session.selectedFolderURL?.lastPathComponent ?? "Tagger")
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(
